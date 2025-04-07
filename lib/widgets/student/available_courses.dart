@@ -11,11 +11,11 @@ class AvailableCourses extends StatelessWidget {
   Widget build(BuildContext context) {
     final courseProvider = Provider.of<CourseProvider>(context);
     final availableCourses = courseProvider.availableCourses;
-    
+
     if (courseProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (availableCourses.isEmpty) {
       return const Card(
         child: Padding(
@@ -32,35 +32,48 @@ class AvailableCourses extends StatelessWidget {
         ),
       );
     }
-    
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: 1,
-      childAspectRatio: 1.2, // Wider card
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 10,
-    ),
-      itemCount: availableCourses.length,
-      itemBuilder: (ctx, index) {
-        return _buildCourseCard(context, availableCourses[index]);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        int crossAxisCount = 1;
+        double screenWidth = constraints.maxWidth;
+
+        if (screenWidth >= 1200) {
+          crossAxisCount = 3;
+        } else if (screenWidth >= 800) {
+          crossAxisCount = 2;
+        }
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: 1.1,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: availableCourses.length,
+          itemBuilder: (ctx, index) {
+            return _buildCourseCard(context, availableCourses[index]);
+          },
+        );
       },
     );
   }
 
   Widget _buildCourseCard(BuildContext context, Course course) {
-    final authProvider = Provider.of<AuthProvider>(context);
     final courseProvider = Provider.of<CourseProvider>(context);
-    
+
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Course image
+          // Course image placeholder
           Container(
             height: 100,
+            width: double.infinity,
             color: Colors.indigo.shade100,
             child: Center(
               child: Icon(
@@ -70,7 +83,7 @@ class AvailableCourses extends StatelessWidget {
               ),
             ),
           ),
-          
+
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -78,10 +91,7 @@ class AvailableCourses extends StatelessWidget {
               children: [
                 // Grade badge
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: Theme.of(context).primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(4),
@@ -96,7 +106,7 @@ class AvailableCourses extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                
+
                 // Course title
                 Text(
                   course.title,
@@ -108,7 +118,7 @@ class AvailableCourses extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
-                
+
                 // Teacher name
                 Text(
                   'by ${course.teacherName ?? 'Unknown Teacher'}',
@@ -120,7 +130,7 @@ class AvailableCourses extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
-                
+
                 // Price
                 Text(
                   '\$${course.price.toStringAsFixed(2)}',
@@ -129,12 +139,12 @@ class AvailableCourses extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 8),
-                
+                const SizedBox(height: 12),
+
                 // Action buttons
                 Row(
                   children: [
-                    // Explore button
+                    // Explore
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
@@ -144,34 +154,34 @@ class AvailableCourses extends StatelessWidget {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 136, 82, 229), // 💜 Custom color
-                        foregroundColor: Colors.white, // 👈 Text color set to white
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                      ),
-                        child: const Text('Explore'),
+                          backgroundColor: const Color(0xFF8852E5),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                        ),
+                        child: const Text('Explore', overflow: TextOverflow.ellipsis),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    
-                    // Enroll button
+
+                    // Enroll
                     Expanded(
-                    child: ElevatedButton(
-                      onPressed: courseProvider.isLoading
-                          ? null
-                          : () {
-                              Navigator.of(context).pushNamed(
-                                '/courses/payment',
-                                arguments: {'course': course},
-                              );
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 136, 82, 229), // 💜 Custom color
-                        foregroundColor: Colors.white, // 👈 Text color set to white
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: ElevatedButton(
+                        onPressed: courseProvider.isLoading
+                            ? null
+                            : () {
+                                Navigator.of(context).pushNamed(
+                                  '/courses/payment',
+                                  arguments: {'course': course},
+                                );
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF8852E5),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                        ),
+                        child: const Text('Enroll', overflow: TextOverflow.ellipsis),
                       ),
-                      child: const Text('Enroll'),
                     ),
-                  ),
                   ],
                 ),
               ],
@@ -182,4 +192,3 @@ class AvailableCourses extends StatelessWidget {
     );
   }
 }
-

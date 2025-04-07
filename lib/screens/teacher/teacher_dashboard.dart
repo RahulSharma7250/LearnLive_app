@@ -204,25 +204,28 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
                     const SizedBox(height: 24),
                     
                     // Upcoming sessions
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Upcoming Live Sessions',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                  Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Upcoming Live Sessions',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                        TextButton.icon(
-                          onPressed: () {
-                            Navigator.of(context).pushNamed('/sessions/create');
-                          },
-                          icon: const Icon(Icons.add),
-                          label: const Text('New Session'),
-                        ),
-                      ],
-                    ),
+                          TextButton.icon(
+                            onPressed: () {
+                              Navigator.of(context).pushNamed('/sessions/create');
+                            },
+                            icon: const Icon(Icons.add),
+                            label: const Text('New Session'),
+                          ),
+                        ],
+                      ),
+
                     const SizedBox(height: 12),
                     const TeacherUpcomingSessions(),
                     const SizedBox(height: 24),

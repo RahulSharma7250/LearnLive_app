@@ -282,6 +282,8 @@ class _LiveSessionScreenState extends State<LiveSessionScreen> {
                         icon: const Icon(Icons.video_call),
                         label: const Text('Join Live Session'),
                         style: ElevatedButton.styleFrom(
+                           backgroundColor: const Color(0xFF8852E5),
+                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
                       ),
