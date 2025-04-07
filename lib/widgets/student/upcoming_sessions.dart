@@ -11,15 +11,17 @@ class UpcomingSessions extends StatelessWidget {
   Widget build(BuildContext context) {
     final courseProvider = Provider.of<CourseProvider>(context);
     final upcomingSessions = courseProvider.upcomingSessions;
-    
+
     if (courseProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (upcomingSessions.isEmpty) {
       return const Card(
+        elevation: 3,
+        margin: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         child: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(24.0),
           child: Center(
             child: Text(
               'No upcoming sessions scheduled',
@@ -32,7 +34,7 @@ class UpcomingSessions extends StatelessWidget {
         ),
       );
     }
-    
+
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -44,36 +46,33 @@ class UpcomingSessions extends StatelessWidget {
   }
 
   Widget _buildSessionCard(BuildContext context, LiveSession session) {
-    // Format date and time
     final dateFormat = DateFormat('EEEE, MMMM d, y');
     final timeFormat = DateFormat('h:mm a');
-    
     final sessionDate = DateTime.parse('${session.date} ${session.time}');
     final formattedDate = dateFormat.format(sessionDate);
     final formattedTime = timeFormat.format(sessionDate);
-    
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    color: const Color(0xFF8852E5).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text(
+                  child: const Text(
                     'LIVE',
                     style: TextStyle(
-                      color: Theme.of(context).primaryColor,
+                      color: Color(0xFF8852E5),
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -93,51 +92,37 @@ class UpcomingSessions extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
               session.title,
               style: const TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Row(
               children: [
-                const Icon(
-                  Icons.calendar_today,
-                  size: 16,
-                  color: Colors.grey,
-                ),
-                const SizedBox(width: 4),
+                const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                const SizedBox(width: 6),
                 Text(
                   formattedDate,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(color: Colors.grey, fontSize: 14),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(
-                  Icons.access_time,
-                  size: 16,
-                  color: Colors.grey,
-                ),
-                const SizedBox(width: 4),
+                const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                const SizedBox(width: 6),
                 Text(
                   '$formattedTime (${session.duration} min)',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(color: Colors.grey, fontSize: 14),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -150,7 +135,17 @@ class UpcomingSessions extends StatelessWidget {
                     },
                   );
                 },
-                child: const Text('Join Session'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF8852E5),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Text(
+                  'Join Session',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
               ),
             ),
           ],
@@ -159,4 +154,3 @@ class UpcomingSessions extends StatelessWidget {
     );
   }
 }
-

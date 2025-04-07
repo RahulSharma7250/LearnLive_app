@@ -44,7 +44,7 @@ class TeacherCourses extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.75,
+        childAspectRatio: 0.55,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
       ),
@@ -173,7 +173,11 @@ class TeacherCourses extends StatelessWidget {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                     
+                        backgroundColor: const Color.fromARGB(255, 136, 82, 229), // 💜 Custom color
+                        foregroundColor: Colors.white, // 👈 Text color set to white
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      
                     ),
                     child: const Text('Manage'),
                   ),

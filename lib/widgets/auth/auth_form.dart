@@ -38,6 +38,20 @@ class _AuthFormState extends State<AuthForm> {
     }
   }
 
+  InputDecoration _inputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon),
+      border: const OutlineInputBorder(),
+      enabledBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.grey),
+      ),
+      focusedBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: Color(0xFF8852E5), width: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -47,10 +61,7 @@ class _AuthFormState extends State<AuthForm> {
           if (!widget.isLogin)
             TextFormField(
               key: const ValueKey('name'),
-              decoration: const InputDecoration(
-                labelText: 'Full Name',
-                prefixIcon: Icon(Icons.person),
-              ),
+              decoration: _inputDecoration('Full Name', Icons.person),
               validator: (value) {
                 if (value == null || value.isEmpty || value.length < 3) {
                   return 'Please enter a valid name (at least 3 characters)';
@@ -61,13 +72,10 @@ class _AuthFormState extends State<AuthForm> {
                 _name = value!;
               },
             ),
-          const SizedBox(height: 16),
+          if (!widget.isLogin) const SizedBox(height: 16),
           TextFormField(
             key: const ValueKey('email'),
-            decoration: const InputDecoration(
-              labelText: 'Email Address',
-              prefixIcon: Icon(Icons.email),
-            ),
+            decoration: _inputDecoration('Email Address', Icons.email),
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
               if (value == null || value.isEmpty || !value.contains('@')) {
@@ -82,10 +90,7 @@ class _AuthFormState extends State<AuthForm> {
           const SizedBox(height: 16),
           TextFormField(
             key: const ValueKey('password'),
-            decoration: const InputDecoration(
-              labelText: 'Password',
-              prefixIcon: Icon(Icons.lock),
-            ),
+            decoration: _inputDecoration('Password', Icons.lock),
             obscureText: true,
             validator: (value) {
               if (value == null || value.isEmpty || value.length < 6) {
@@ -146,6 +151,8 @@ class _AuthFormState extends State<AuthForm> {
             child: ElevatedButton(
               onPressed: widget.isLoading ? null : _trySubmit,
               style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF8852E5),
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
               child: widget.isLoading
@@ -168,4 +175,3 @@ class _AuthFormState extends State<AuthForm> {
     );
   }
 }
-

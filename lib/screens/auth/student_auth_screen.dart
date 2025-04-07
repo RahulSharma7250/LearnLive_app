@@ -27,9 +27,7 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
   }
 
   Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _isLoading = true;
@@ -56,11 +54,9 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
 
       if (success) {
         if (_isLogin) {
-          // Navigate to grade selection screen after login
           if (!mounted) return;
           Navigator.of(context).pushReplacementNamed('/student/grade-selection');
         } else {
-          // Navigate to login screen after successful signup
           if (!mounted) return;
           setState(() {
             _isLogin = true;
@@ -91,6 +87,22 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
     }
   }
 
+  InputDecoration _buildInputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.grey.shade400),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,16 +126,8 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
-                
-                // Logo
-                Icon(
-                  Icons.school,
-                  size: 64,
-                  color: Colors.white,
-                ),
+                const Icon(Icons.school, size: 64, color: Colors.white),
                 const SizedBox(height: 16),
-                
-                // App name
                 const Text(
                   'LearnLive',
                   style: TextStyle(
@@ -133,18 +137,11 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                
-                // Tagline
                 const Text(
                   'Student Portal',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                  ),
+                  style: TextStyle(fontSize: 18, color: Colors.white),
                 ),
                 const SizedBox(height: 48),
-                
-                // Auth form
                 Card(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -163,7 +160,6 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        
                         if (_error != null)
                           Container(
                             width: double.infinity,
@@ -178,9 +174,7 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                               style: TextStyle(color: Colors.red.shade800),
                             ),
                           ),
-                        
                         if (_error != null) const SizedBox(height: 16),
-                        
                         Form(
                           key: _formKey,
                           child: Column(
@@ -188,10 +182,7 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                               if (!_isLogin)
                                 TextFormField(
                                   controller: _nameController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Full Name',
-                                    prefixIcon: Icon(Icons.person),
-                                  ),
+                                  decoration: _buildInputDecoration('Full Name', Icons.person),
                                   validator: (value) {
                                     if (value == null || value.isEmpty || value.length < 3) {
                                       return 'Please enter a valid name (at least 3 characters)';
@@ -200,13 +191,9 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                                   },
                                 ),
                               if (!_isLogin) const SizedBox(height: 16),
-                              
                               TextFormField(
                                 controller: _emailController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Email Address',
-                                  prefixIcon: Icon(Icons.email),
-                                ),
+                                decoration: _buildInputDecoration('Email Address', Icons.email),
                                 keyboardType: TextInputType.emailAddress,
                                 validator: (value) {
                                   if (value == null || value.isEmpty || !value.contains('@')) {
@@ -216,13 +203,9 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                                 },
                               ),
                               const SizedBox(height: 16),
-                              
                               TextFormField(
                                 controller: _passwordController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Password',
-                                  prefixIcon: Icon(Icons.lock),
-                                ),
+                                decoration: _buildInputDecoration('Password', Icons.lock),
                                 obscureText: true,
                                 validator: (value) {
                                   if (value == null || value.isEmpty || value.length < 6) {
@@ -232,40 +215,45 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                                 },
                               ),
                               const SizedBox(height: 24),
-                              
                               SizedBox(
                                 width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: _isLoading ? null : _submitForm,
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                  ),
-                                  child: _isLoading
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : Text(
-                                        _isLogin ? 'Login' : 'Sign Up',
-                                        style: const TextStyle(fontSize: 16),
-                                      ),
-                                ),
+                               child: ElevatedButton(
+  onPressed: _isLoading ? null : _submitForm,
+  style: ElevatedButton.styleFrom(
+    backgroundColor: const Color.fromARGB(255, 136, 82, 229), // Lilac color
+    padding: const EdgeInsets.symmetric(vertical: 12),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+  ),
+  child: _isLoading
+      ? const SizedBox(
+          height: 20,
+          width: 20,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Colors.white,
+          ),
+        )
+      : Text(
+          _isLogin ? 'Login' : 'Sign Up',
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.white,
+          ),
+        ),
+),
                               ),
                             ],
                           ),
                         ),
-                        
                         const SizedBox(height: 16),
-                        
-                        // Toggle between login and signup
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(_isLogin ? 'Don\'t have an account?' : 'Already have an account?'),
+                            Text(_isLogin
+                                ? 'Don\'t have an account?'
+                                : 'Already have an account?'),
                             TextButton(
                               onPressed: () {
                                 setState(() {
@@ -281,10 +269,7 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                     ),
                   ),
                 ),
-                
                 const SizedBox(height: 24),
-                
-                // Back button
                 TextButton.icon(
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -303,4 +288,3 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
     );
   }
 }
-

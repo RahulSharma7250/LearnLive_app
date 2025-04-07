@@ -18,22 +18,22 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
   bool _isLoading = false;
   bool _isLoadingCourses = false;
   String? _error;
-  
+
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _durationController = TextEditingController(text: '45');
-  
+
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _selectedTime = TimeOfDay.now();
   Course? _selectedCourse;
   List<Course> _teacherCourses = [];
-  
+
   @override
   void initState() {
     super.initState();
     _fetchTeacherCourses();
   }
-  
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -41,32 +41,31 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
     _durationController.dispose();
     super.dispose();
   }
-  
+
   Future<void> _fetchTeacherCourses() async {
     setState(() {
       _isLoadingCourses = true;
       _error = null;
     });
-    
+
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final courseProvider = Provider.of<CourseProvider>(context, listen: false);
-      
+
       await courseProvider.fetchAvailableCourses(authProvider.token, null);
-      
+
       if (courseProvider.error != null) {
         setState(() {
           _error = courseProvider.error;
         });
         return;
       }
-      
-      // Filter courses by teacher
+
       final teacherId = authProvider.user?.id;
       final teacherCourses = courseProvider.availableCourses
           .where((course) => course.teacherId == teacherId)
           .toList();
-      
+
       setState(() {
         _teacherCourses = teacherCourses;
         if (teacherCourses.isNotEmpty) {
@@ -83,7 +82,7 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
       });
     }
   }
-  
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -97,7 +96,7 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
       });
     }
   }
-  
+
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -109,34 +108,27 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
       });
     }
   }
-  
+
   Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-    
+    if (!_formKey.currentState!.validate()) return;
+
     if (_selectedCourse == null) {
       setState(() {
         _error = 'Please select a course';
       });
       return;
     }
-    
+
     setState(() {
       _isLoading = true;
       _error = null;
     });
-    
+
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final courseProvider = Provider.of<CourseProvider>(context, listen: false);
-      
       final duration = int.tryParse(_durationController.text) ?? 45;
-      
-      // Format date and time
-      final dateFormat = DateFormat('yyyy-MM-dd');
-      final timeFormat = DateFormat('HH:mm:ss');
-      
+
       final dateTime = DateTime(
         _selectedDate.year,
         _selectedDate.month,
@@ -144,21 +136,24 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
         _selectedTime.hour,
         _selectedTime.minute,
       );
-      
+
+      final dateFormat = DateFormat('yyyy-MM-dd');
+      final timeFormat = DateFormat('HH:mm:ss');
+
       final newSession = LiveSession(
-        id: '', // Will be assigned by the backend
+        id: '',
         title: _titleController.text,
         description: _descriptionController.text,
         course: _selectedCourse!.title,
-        moduleId: null, // Not using modules in this simplified version
+        moduleId: null,
         date: dateFormat.format(dateTime),
         time: timeFormat.format(dateTime),
         duration: duration,
         teacher: authProvider.user!.name,
       );
-      
+
       final success = await courseProvider.createSession(authProvider.token, newSession);
-      
+
       if (success) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -180,11 +175,11 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
       });
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('EEEE, MMMM d, y');
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Live Session'),
@@ -213,7 +208,6 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                           style: TextStyle(color: Colors.red.shade800),
                         ),
                       ),
-                    
                     if (_teacherCourses.isEmpty)
                       Container(
                         width: double.infinity,
@@ -261,7 +255,6 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          
                           DropdownButtonFormField<Course>(
                             decoration: const InputDecoration(
                               labelText: 'Course',
@@ -281,15 +274,9 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                                 });
                               }
                             },
-                            validator: (value) {
-                              if (value == null) {
-                                return 'Please select a course';
-                              }
-                              return null;
-                            },
+                            validator: (value) => value == null ? 'Please select a course' : null,
                           ),
                           const SizedBox(height: 16),
-                          
                           TextFormField(
                             controller: _titleController,
                             decoration: const InputDecoration(
@@ -297,15 +284,10 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                               hintText: 'e.g., Introduction to Fractions',
                               border: OutlineInputBorder(),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a session title';
-                              }
-                              return null;
-                            },
+                            validator: (value) =>
+                                value == null || value.isEmpty ? 'Please enter a session title' : null,
                           ),
                           const SizedBox(height: 16),
-                          
                           TextFormField(
                             controller: _descriptionController,
                             decoration: const InputDecoration(
@@ -314,58 +296,64 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                               border: OutlineInputBorder(),
                             ),
                             maxLines: 3,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a session description';
-                              }
-                              return null;
+                            validator: (value) =>
+                                value == null || value.isEmpty ? 'Please enter a session description' : null,
+                          ),
+                          const SizedBox(height: 16),
+
+                          /// DATE & TIME PICKERS
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              return Row(
+                                children: [
+                                  Expanded(
+                                    child: InkWell(
+                                      onTap: () => _selectDate(context),
+                                      child: InputDecorator(
+                                        decoration: const InputDecoration(
+                                          labelText: 'Date',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Flexible(child: Text(dateFormat.format(_selectedDate))),
+                                              const Icon(Icons.calendar_today),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: InkWell(
+                                      onTap: () => _selectTime(context),
+                                      child: InputDecorator(
+                                        decoration: const InputDecoration(
+                                          labelText: 'Time',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Flexible(child: Text(_selectedTime.format(context))),
+                                              const Icon(Icons.access_time),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
                             },
                           ),
                           const SizedBox(height: 16),
-                          
-                          Row(
-                            children: [
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () => _selectDate(context),
-                                  child: InputDecorator(
-                                    decoration: const InputDecoration(
-                                      labelText: 'Date',
-                                      border: OutlineInputBorder(),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(dateFormat.format(_selectedDate)),
-                                        const Icon(Icons.calendar_today),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () => _selectTime(context),
-                                  child: InputDecorator(
-                                    decoration: const InputDecoration(
-                                      labelText: 'Time',
-                                      border: OutlineInputBorder(),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(_selectedTime.format(context)),
-                                        const Icon(Icons.access_time),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          
                           TextFormField(
                             controller: _durationController,
                             decoration: const InputDecoration(
@@ -375,27 +363,30 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a duration';
-                              }
-                              if (int.tryParse(value) == null) {
-                                return 'Please enter a valid number';
-                              }
+                              if (value == null || value.isEmpty) return 'Please enter a duration';
+                              if (int.tryParse(value) == null) return 'Please enter a valid number';
                               return null;
                             },
                           ),
                           const SizedBox(height: 32),
-                          
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _submitForm,
                               style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                backgroundColor: const Color(0xFF8852E5), // 💜 Primary
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
                               child: _isLoading
-                                  ? const CircularProgressIndicator()
-                                  : const Text('Create Session'),
+                                  ? const CircularProgressIndicator(color: Colors.white)
+                                  : const Text(
+                                      'Create Session',
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                    ),
                             ),
                           ),
                         ],
@@ -407,4 +398,3 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
     );
   }
 }
-

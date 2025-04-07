@@ -141,10 +141,15 @@ class TeacherUpcomingSessions extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: ElevatedButton(
                     onPressed: () {
                       // Edit session
                     },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 136, 82, 229), // 💜 Custom color
+                        foregroundColor: Colors.white, // 👈 Text color set to white
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      ),
                     child: const Text('Edit'),
                   ),
                 ),
@@ -160,6 +165,11 @@ class TeacherUpcomingSessions extends StatelessWidget {
                         },
                       );
                     },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 136, 82, 229), // 💜 Custom color
+                        foregroundColor: Colors.white, // 👈 Text color set to white
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      ),
                     child: const Text('Start'),
                   ),
                 ),

@@ -9,7 +9,10 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -19,8 +22,8 @@ class LoginScreen extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).primaryColor,
-              Theme.of(context).primaryColor.withOpacity(0.8),
+              colorScheme.primary,
+              colorScheme.primary.withOpacity(0.85),
             ],
           ),
         ),
@@ -31,38 +34,37 @@ class LoginScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
-                
+
                 // Logo
                 Icon(
                   Icons.school,
                   size: 64,
-                  color: Colors.white,
+                  color: colorScheme.onPrimary,
                 ),
                 const SizedBox(height: 16),
-                
+
                 // App name
-                const Text(
+                Text(
                   'LearnLive',
-                  style: TextStyle(
-                    fontSize: 28,
+                  style: textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: colorScheme.onPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
-                
+
                 // Tagline
-                const Text(
+                Text(
                   'Interactive Learning Platform',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onPrimary.withOpacity(0.9),
                   ),
                 ),
                 const SizedBox(height: 48),
-                
+
                 // Login form
                 Card(
+                  color: theme.cardColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -72,15 +74,15 @@ class LoginScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Login',
-                          style: TextStyle(
-                            fontSize: 24,
+                          style: textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
+                            color: colorScheme.onBackground,
                           ),
                         ),
                         const SizedBox(height: 24),
-                        
+
                         // Auth form
                         AuthForm(
                           isLogin: true,
@@ -96,26 +98,29 @@ class LoginScreen extends StatelessWidget {
                             }
                           },
                         ),
-                        
+
                         if (authProvider.error != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 16.0),
                             child: Text(
                               authProvider.error!,
                               style: const TextStyle(
-                                color: Colors.red,
+                                color: Colors.redAccent,
                                 fontSize: 14,
                               ),
                             ),
                           ),
-                        
+
                         const SizedBox(height: 16),
-                        
+
                         // Sign up link
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text('Don\'t have an account?'),
+                            Text(
+                              'Don\'t have an account?',
+                              style: textTheme.bodyMedium,
+                            ),
                             TextButton(
                               onPressed: () {
                                 Navigator.of(context).pushReplacementNamed('/signup');
@@ -136,4 +141,3 @@ class LoginScreen extends StatelessWidget {
     );
   }
 }
-

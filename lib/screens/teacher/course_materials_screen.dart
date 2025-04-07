@@ -54,12 +54,6 @@ class _CourseMaterialsScreenState extends State<CourseMaterialsScreen> {
     try {
       String? courseId = widget.courseId;
       
-      // If courseId wasn't passed directly, try to get it from route arguments
-      if (courseId == null) {
-        final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-        courseId = args?['courseId'] as String?;
-      }
-      
       if (courseId == null) {
         setState(() {
           _error = 'Course ID not provided';
@@ -194,19 +188,29 @@ class _CourseMaterialsScreenState extends State<CourseMaterialsScreen> {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _addMaterial();
-                Navigator.of(ctx).pop();
-              },
-              child: const Text('Add'),
-            ),
+         TextButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color.fromARGB(255, 136, 82, 229), // 💜 Text color
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    _addMaterial();
+                    Navigator.of(ctx).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 136, 82, 229), // 💜 Custom color
+                    foregroundColor: Colors.white, // 👈 Text color set to white
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  child: const Text('Add'),
+                ),
+
           ],
         ),
       ),
@@ -432,6 +436,12 @@ class _CourseMaterialsScreenState extends State<CourseMaterialsScreen> {
                           onPressed: _showAddMaterialDialog,
                           icon: const Icon(Icons.add),
                           label: const Text('Add Your First Material'),
+                        
+                        style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 136, 82, 229), // 💜 Custom color
+                        foregroundColor: Colors.white, // 👈 Text color set to white
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+                      ),
                         ),
                       ],
                     ),

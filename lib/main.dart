@@ -36,6 +36,7 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<AuthProvider>(
         builder: (ctx, auth, _) => MaterialApp(
+          debugShowCheckedModeBanner: false,
           title: 'LearnLive',
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,

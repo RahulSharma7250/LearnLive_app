@@ -37,11 +37,11 @@ class AvailableCourses extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.75,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-      ),
+      crossAxisCount: 1,
+      childAspectRatio: 1.2, // Wider card
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 10,
+    ),
       itemCount: availableCourses.length,
       itemBuilder: (ctx, index) {
         return _buildCourseCard(context, availableCourses[index]);
@@ -136,16 +136,18 @@ class AvailableCourses extends StatelessWidget {
                   children: [
                     // Explore button
                     Expanded(
-                      child: OutlinedButton(
+                      child: ElevatedButton(
                         onPressed: () {
                           Navigator.of(context).pushNamed(
                             '/courses/explore',
                             arguments: {'courseId': course.id},
                           );
                         },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                        ),
+                        style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 136, 82, 229), // 💜 Custom color
+                        foregroundColor: Colors.white, // 👈 Text color set to white
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      ),
                         child: const Text('Explore'),
                       ),
                     ),
@@ -153,21 +155,23 @@ class AvailableCourses extends StatelessWidget {
                     
                     // Enroll button
                     Expanded(
-                      child: ElevatedButton(
-                        onPressed: courseProvider.isLoading
-                            ? null
-                            : () {
-                                Navigator.of(context).pushNamed(
-                                  '/courses/payment',
-                                  arguments: {'course': course},
-                                );
-                              },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                        ),
-                        child: const Text('Enroll'),
+                    child: ElevatedButton(
+                      onPressed: courseProvider.isLoading
+                          ? null
+                          : () {
+                              Navigator.of(context).pushNamed(
+                                '/courses/payment',
+                                arguments: {'course': course},
+                              );
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 136, 82, 229), // 💜 Custom color
+                        foregroundColor: Colors.white, // 👈 Text color set to white
+                        padding: const EdgeInsets.symmetric(vertical: 8),
                       ),
+                      child: const Text('Enroll'),
                     ),
+                  ),
                   ],
                 ),
               ],

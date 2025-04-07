@@ -473,4 +473,4 @@ if __name__ == "__main__":
         raise RuntimeError("No available ports found")
     
     print(f"Starting server on port {port}")
-    uvicorn.run(app, host="192.168.29.230", port=port)
+    uvicorn.run(app, host="192.168.29.32", port=port)

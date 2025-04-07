@@ -161,7 +161,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     const AvailableCourses(),
                   ],
                 ),

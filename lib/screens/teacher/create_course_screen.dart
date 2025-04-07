@@ -212,7 +212,10 @@ class _CreateCourseScreenState extends State<CreateCourseScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _submitForm,
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: const Color.fromARGB(255, 136, 82, 229), // 💜 Custom color
+                        foregroundColor: Colors.white, // 👈 Text color set to white
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      
                   ),
                   child: _isLoading
                       ? const CircularProgressIndicator()
