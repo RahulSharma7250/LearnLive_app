@@ -102,3 +102,13 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_launcher_icons: "^0.13.1"
+
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo.png"
