@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Body
+from fastapi import FastAPI, Depends, HTTPException, status, Body, UploadFile, File, Form, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -11,6 +11,15 @@ from bson import ObjectId
 import os
 import socket
 from dotenv import load_dotenv
+import shutil
+import uuid
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -20,8 +29,12 @@ MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
 client = AsyncIOMotorClient(MONGODB_URL)
 db = client.learnlive
 
+# File upload settings
+UPLOAD_DIR = "uploads"
+Path(UPLOAD_DIR).mkdir(exist_ok=True)
+
 # JWT settings
-SECRET_KEY = os.getenv("SECRET_KEY", "rahul123")
+SECRET_KEY = os.getenv("SECRET_KEY", "your-very-secret-key-123")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
 
@@ -109,7 +122,6 @@ class Session(SessionBase):
     class Config:
         from_attributes = True
 
-# Payment model
 class PaymentRequest(BaseModel):
     course_id: str
     amount: float
@@ -123,6 +135,30 @@ class PaymentResponse(BaseModel):
     transaction_date: datetime
     course_id: str
     amount: float
+
+class CourseMaterialBase(BaseModel):
+    title: str
+    description: str
+    type: str  # 'note', 'pdf', 'video', 'link', etc.
+
+class CourseMaterialCreate(CourseMaterialBase):
+    content: Optional[str] = None
+    file_url: Optional[str] = None
+    external_url: Optional[str] = None
+
+class CourseMaterial(CourseMaterialBase):
+    id: str
+    course_id: str
+    content: Optional[str] = None
+    file_url: Optional[str] = None
+    external_url: Optional[str] = None
+    created_at: datetime
+    created_by: str
+    file_name: Optional[str] = None
+    file_size: Optional[int] = None
+
+    class Config:
+        from_attributes = True
 
 # Helper functions
 def verify_password(plain_password, hashed_password):
@@ -236,50 +272,26 @@ async def get_courses(grade: Optional[str] = None, current_user: dict = Depends(
     
     courses = []
     async for course in db.courses.find(query):
-        course["id"] = str(course["_id"])  # Convert ObjectId to string
+        course["id"] = str(course["_id"])
         courses.append(course)
     return courses
 
 @app.get("/courses/{course_id}", response_model=Course)
 async def get_course(course_id: str, current_user: dict = Depends(get_current_user)):
-    print(f"Fetching course with ID: {course_id}")
+    if not ObjectId.is_valid(course_id):
+        raise HTTPException(status_code=400, detail="Invalid course ID format")
     
-    # Check if course_id is a valid MongoDB ObjectId
-    try:
-        if not ObjectId.is_valid(course_id):
-            print(f"Invalid course ID format: {course_id}")
-            raise HTTPException(status_code=400, detail="Invalid course ID format")
-        
-        object_id = ObjectId(course_id)
-        print(f"Converted to ObjectId: {object_id}")
-    except Exception as e:
-        print(f"Error converting to ObjectId: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Invalid course ID: {str(e)}")
+    course = await db.courses.find_one({"_id": ObjectId(course_id)})
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
     
-    try:
-        # Query the database
-        print(f"Querying database for course with _id: {object_id}")
-        course = await db.courses.find_one({"_id": object_id})
-        print(f"Query result: {course}")
-        
-        if not course:
-            print(f"Course not found with ID: {course_id}")
-            raise HTTPException(status_code=404, detail="Course not found")
-        
-        # Convert ObjectId to string for the response
-        course["id"] = str(course["_id"])
-        print(f"Returning course: {course['title']}")
-        return course
-    except Exception as e:
-        print(f"Error fetching course: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+    course["id"] = str(course["_id"])
+    return course
 
-@app.get("/courses/enrolled", response_model=List[Course])
+@app.get("/course/enrolled", response_model=List[Course])
 async def get_enrolled_courses(current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "student":
-        raise HTTPException(status_code=400, detail="Only students can view enrolled courses")
-    
     user_id = str(current_user["_id"])
+    
     courses = []
     async for course in db.courses.find({"students": user_id}):
         course["id"] = str(course["_id"])
@@ -305,16 +317,16 @@ async def create_course(course: CourseCreate, current_user: dict = Depends(get_c
 
 @app.post("/courses/{course_id}/enroll")
 async def enroll_in_course(course_id: str, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "student":
-        raise HTTPException(status_code=400, detail="Only students can enroll in courses")
-    
     user_id = str(current_user["_id"])
-    course = await db.courses.find_one({"_id": ObjectId(course_id)})
     
+    if not ObjectId.is_valid(course_id):
+        raise HTTPException(status_code=400, detail="Invalid course ID format")
+    
+    course = await db.courses.find_one({"_id": ObjectId(course_id)})
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     
-    if user_id in course.get("students", []):
+    if "students" in course and user_id in course["students"]:
         raise HTTPException(status_code=400, detail="Already enrolled in this course")
     
     await db.courses.update_one(
@@ -324,61 +336,230 @@ async def enroll_in_course(course_id: str, current_user: dict = Depends(get_curr
     
     return {"message": "Successfully enrolled in course"}
 
-# New payment endpoint for testing
 @app.post("/payments", response_model=PaymentResponse)
 async def process_payment(payment: PaymentRequest, current_user: dict = Depends(get_current_user)):
-    print(f"Processing payment for course: {payment.course_id}")
+    if not ObjectId.is_valid(payment.course_id):
+        raise HTTPException(status_code=400, detail="Invalid course ID format")
     
-    try:
-        # Validate course exists
-        if ObjectId.is_valid(payment.course_id):
-            course = await db.courses.find_one({"_id": ObjectId(payment.course_id)})
-            if not course:
-                print(f"Course not found with ID: {payment.course_id}")
-                raise HTTPException(status_code=404, detail="Course not found")
-        
-        # For testing, always return success
-        payment_id = str(ObjectId())
-        
-        # Store payment record in database
-        payment_record = {
-            "payment_id": payment_id,
-            "user_id": str(current_user["_id"]),
-            "course_id": payment.course_id,
-            "amount": payment.amount,
-            "status": "success",
-            "payment_method": payment.payment_method,
-            "transaction_date": datetime.utcnow()
-        }
-        
-        await db.payments.insert_one(payment_record)
-        
-        # Automatically enroll the student in the course if they're not already enrolled
-        if current_user["role"] == "student":
-            user_id = str(current_user["_id"])
-            course = await db.courses.find_one({"_id": ObjectId(payment.course_id)})
-            
-            if course and user_id not in course.get("students", []):
-                await db.courses.update_one(
-                    {"_id": ObjectId(payment.course_id)},
-                    {"$push": {"students": user_id}}
-                )
-                print(f"User {user_id} enrolled in course {payment.course_id}")
-        
-        # Return success response
-        return {
-            "payment_id": payment_id,
-            "status": "success",
-            "message": "Payment processed successfully",
-            "transaction_date": datetime.utcnow(),
-            "course_id": payment.course_id,
-            "amount": payment.amount
-        }
+    course = await db.courses.find_one({"_id": ObjectId(payment.course_id)})
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
     
-    except Exception as e:
-        print(f"Error processing payment: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Payment processing failed: {str(e)}")
+    payment_id = str(ObjectId())
+    
+    payment_record = {
+        "payment_id": payment_id,
+        "user_id": str(current_user["_id"]),
+        "course_id": payment.course_id,
+        "amount": payment.amount,
+        "status": "success",
+        "payment_method": payment.payment_method,
+        "transaction_date": datetime.utcnow()
+    }
+    
+    await db.payments.insert_one(payment_record)
+    
+    user_id = str(current_user["_id"])
+    if user_id not in course.get("students", []):
+        await db.courses.update_one(
+            {"_id": ObjectId(payment.course_id)},
+            {"$push": {"students": user_id}}
+        )
+    
+    return {
+        "payment_id": payment_id,
+        "status": "success",
+        "message": "Payment processed successfully",
+        "transaction_date": datetime.utcnow(),
+        "course_id": payment.course_id,
+        "amount": payment.amount
+    }
 
+# Course Materials Endpoints
+@app.get("/courses/{course_id}/materials", response_model=List[CourseMaterial])
+async def get_course_materials(course_id: str, current_user: dict = Depends(get_current_user)):
+    if not ObjectId.is_valid(course_id):
+        raise HTTPException(status_code=400, detail="Invalid course ID format")
+    
+    course = await db.courses.find_one({"_id": ObjectId(course_id)})
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    
+    user_id = str(current_user["_id"])
+    is_teacher = current_user["role"] == "teacher"
+    is_course_teacher = course.get("teacher_id") == user_id
+    is_enrolled = user_id in course.get("students", [])
+    
+    if not (is_teacher or is_course_teacher or is_enrolled):
+        raise HTTPException(
+            status_code=403, 
+            detail="You must be the teacher or enrolled in the course to view materials"
+        )
+    
+    materials = []
+    async for material in db.course_materials.find({"course_id": course_id}).sort("created_at", -1):
+        material["id"] = str(material["_id"])
+        materials.append(material)
+    
+    return materials
+
+@app.post("/courses/{course_id}/materials", response_model=CourseMaterial)
+async def create_course_material(
+    course_id: str,
+    title: str = Form(...),
+    description: str = Form(...),
+    type: str = Form(...),
+    content: Optional[str] = Form(None),
+    external_url: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
+    current_user: dict = Depends(get_current_user)
+):
+    logger.info(f"Creating material for course {course_id}")
+    
+    if not ObjectId.is_valid(course_id):
+        raise HTTPException(status_code=400, detail="Invalid course ID format")
+    
+    course = await db.courses.find_one({"_id": ObjectId(course_id)})
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    
+    user_id = str(current_user["_id"])
+    if course.get("teacher_id") != user_id:
+        raise HTTPException(
+            status_code=403, 
+            detail="Only the course teacher can add materials"
+        )
+    
+    file_url = None
+    file_name = None
+    file_size = None
+    
+    if file:
+        try:
+            file_ext = file.filename.split(".")[-1] if "." in file.filename else ""
+            unique_filename = f"{uuid.uuid4()}.{file_ext}"
+            file_path = os.path.join(UPLOAD_DIR, unique_filename)
+            
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+            
+            file_url = f"/uploads/{unique_filename}"
+            file_name = file.filename
+            file_size = os.path.getsize(file_path)
+            
+            if not type:
+                if file_ext.lower() in ["pdf", "doc", "docx"]:
+                    type = "document"
+                elif file_ext.lower() in ["jpg", "jpeg", "png", "gif"]:
+                    type = "image"
+                elif file_ext.lower() in ["mp4", "mov", "avi"]:
+                    type = "video"
+                else:
+                    type = "file"
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error saving file: {str(e)}")
+    
+    material_dict = {
+        "title": title,
+        "description": description,
+        "type": type,
+        "content": content,
+        "external_url": external_url,
+        "file_url": file_url,
+        "file_name": file_name,
+        "file_size": file_size,
+        "course_id": course_id,
+        "created_at": datetime.utcnow(),
+        "created_by": user_id
+    }
+    
+    result = await db.course_materials.insert_one(material_dict)
+    material_dict["id"] = str(result.inserted_id)
+    
+    return material_dict
+
+@app.get("/courses/{course_id}/materials/{material_id}", response_model=CourseMaterial)
+async def get_course_material(
+    course_id: str,
+    material_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    if not ObjectId.is_valid(course_id) or not ObjectId.is_valid(material_id):
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+    
+    course = await db.courses.find_one({"_id": ObjectId(course_id)})
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    
+    user_id = str(current_user["_id"])
+    is_teacher = current_user["role"] == "teacher"
+    is_course_teacher = course.get("teacher_id") == user_id
+    is_enrolled = user_id in course.get("students", [])
+    
+    if not (is_teacher or is_course_teacher or is_enrolled):
+        raise HTTPException(
+            status_code=403, 
+            detail="You must be the teacher or enrolled in the course to view this material"
+        )
+    
+    material = await db.course_materials.find_one({
+        "_id": ObjectId(material_id),
+        "course_id": course_id
+    })
+    
+    if not material:
+        raise HTTPException(status_code=404, detail="Material not found")
+    
+    material["id"] = str(material["_id"])
+    return material
+
+@app.delete("/courses/{course_id}/materials/{material_id}")
+async def delete_course_material(
+    course_id: str,
+    material_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    if not ObjectId.is_valid(course_id) or not ObjectId.is_valid(material_id):
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+    
+    course = await db.courses.find_one({"_id": ObjectId(course_id)})
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    
+    user_id = str(current_user["_id"])
+    if course.get("teacher_id") != user_id:
+        raise HTTPException(
+            status_code=403, 
+            detail="Only the course teacher can delete materials"
+        )
+    
+    material = await db.course_materials.find_one({
+        "_id": ObjectId(material_id),
+        "course_id": course_id
+    })
+    
+    if not material:
+        raise HTTPException(status_code=404, detail="Material not found")
+    
+    if material.get("file_url"):
+        try:
+            file_path = material["file_url"].lstrip("/")
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            logger.error(f"Error deleting file: {str(e)}")
+    
+    result = await db.course_materials.delete_one({
+        "_id": ObjectId(material_id),
+        "course_id": course_id
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Material not found")
+    
+    return {"message": "Material deleted successfully"}
+
+# Sessions Endpoints
 @app.get("/sessions/upcoming", response_model=List[Session])
 async def get_upcoming_sessions(current_user: dict = Depends(get_current_user)):
     user_id = str(current_user["_id"])
@@ -449,12 +630,16 @@ async def get_session(session_id: str, current_user: dict = Depends(get_current_
     
     return session
 
+# Root endpoint
 @app.get("/")
 async def root():
     return {"message": "Welcome to LearnLive API"}
 
+# Static files serving
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+# Port finding and server startup
 def find_available_port(start_port: int, max_port: int = 65535) -> Optional[int]:
-    """Find an available port starting from start_port."""
     for port in range(start_port, max_port + 1):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -467,10 +652,9 @@ def find_available_port(start_port: int, max_port: int = 65535) -> Optional[int]
 if __name__ == "__main__":
     import uvicorn
     
-    # Find and use an available port
     port = find_available_port(5000)
     if port is None:
         raise RuntimeError("No available ports found")
     
     print(f"Starting server on port {port}")
-    uvicorn.run(app, host="192.168.29.32", port=port)
+    uvicorn.run(app, host="192.168.29.230", port=port)

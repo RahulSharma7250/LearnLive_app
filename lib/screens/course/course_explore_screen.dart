@@ -44,6 +44,9 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final courseProvider = Provider.of<CourseProvider>(context, listen: false);
 
+      // First check if we're enrolled using the efficient method
+      final isEnrolled = courseProvider.isEnrolledInCourse(courseId);
+    
       final course = await courseProvider.fetchCourseDetails(authProvider.token, courseId);
       if (course == null) {
         setState(() {
@@ -53,9 +56,6 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
         return;
       }
 
-      final enrolledCourses = courseProvider.enrolledCourses;
-      final isEnrolled = enrolledCourses.any((c) => c.id == courseId);
-
       final materials = await courseProvider.fetchCourseMaterials(authProvider.token, courseId);
 
       setState(() {
@@ -64,6 +64,9 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
         _materials = materials;
         _isLoading = false;
       });
+    
+      // Log enrollment status for debugging
+      print('Course ${course.title} (ID: ${course.id}) - Enrollment status: $_isEnrolled');
     } catch (e) {
       setState(() {
         _error = 'An error occurred: ${e.toString()}';
@@ -72,12 +75,52 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
     }
   }
 
-  Future<void> _openPdf(String url) async {
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-    } else {
+  // Method to view files
+  Future<void> _viewFile(CourseMaterial material) async {
+    try {
+      if (material.type == 'note' && material.content != null) {
+        // Show note content in a dialog
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(material.title, style: GoogleFonts.poppins()),
+            content: SingleChildScrollView(
+              child: Text(material.content!, style: GoogleFonts.poppins()),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text('Close', style: GoogleFonts.poppins()),
+              ),
+            ],
+          ),
+        );
+      } else if (material.type == 'link' && material.externalUrl != null) {
+        // Open external URL
+        if (await canLaunchUrl(Uri.parse(material.externalUrl!))) {
+          await launchUrl(Uri.parse(material.externalUrl!), mode: LaunchMode.externalApplication);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open the URL')),
+          );
+        }
+      } else if (material.fileUrl != null) {
+        // Open file URL
+        if (await canLaunchUrl(Uri.parse(material.fileUrl!))) {
+          await launchUrl(Uri.parse(material.fileUrl!), mode: LaunchMode.externalApplication);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open the file')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No content available to view')),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open the file')),
+        SnackBar(content: Text('Error opening file: ${e.toString()}')),
       );
     }
   }
@@ -112,6 +155,42 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
         ],
       ),
     );
+  }
+
+  // Helper method to get icon for material type
+  IconData _getMaterialIcon(String type) {
+    switch (type) {
+      case 'note':
+        return Icons.note;
+      case 'document':
+        return Icons.picture_as_pdf;
+      case 'image':
+        return Icons.image;
+      case 'video':
+        return Icons.video_library;
+      case 'link':
+        return Icons.link;
+      default:
+        return Icons.insert_drive_file;
+    }
+  }
+
+  // Helper method to get color for material type
+  Color _getMaterialColor(String type) {
+    switch (type) {
+      case 'note':
+        return Colors.blue;
+      case 'document':
+        return Colors.red;
+      case 'image':
+        return Colors.green;
+      case 'video':
+        return Colors.purple;
+      case 'link':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
   }
 
   @override
@@ -243,7 +322,7 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF8852E5),
-                    foregroundColor: Colors.white, // 👈 Text color set to white
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -295,40 +374,32 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
                 children: List.generate(_materials.length, (index) {
                   final material = _materials[index];
                   return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
+                    margin: const EdgeInsets.only(bottom: 12),
                     child: Stack(
                       children: [
                         ListTile(
-                          leading: Icon(
-                            material.type == 'pdf' ? Icons.picture_as_pdf : Icons.note,
-                            color: material.type == 'pdf' ? Colors.red : Colors.blue,
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: _getMaterialColor(material.type).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              _getMaterialIcon(material.type),
+                              color: _getMaterialColor(material.type),
+                              size: 24,
+                            ),
                           ),
                           title: Text(material.title, style: GoogleFonts.poppins()),
                           subtitle: Text(material.description, style: GoogleFonts.poppins(fontSize: 13)),
                           trailing: _isEnrolled
                               ? IconButton(
-                                  icon: const Icon(Icons.download),
-                                  onPressed: () {
-                                    if (material.fileUrl != null) {
-                                      _openPdf(material.fileUrl!);
-                                    } else if (material.content != null) {
-                                      showDialog(
-                                        context: context,
-                                        builder: (ctx) => AlertDialog(
-                                          title: Text(material.title, style: GoogleFonts.poppins()),
-                                          content: SingleChildScrollView(
-                                            child: Text(material.content!, style: GoogleFonts.poppins()),
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () => Navigator.of(ctx).pop(),
-                                              child: Text('Close', style: GoogleFonts.poppins()),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }
-                                  },
+                                  icon: Icon(
+                                    Icons.visibility,
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                                  onPressed: () => _viewFile(material),
                                 )
                               : IconButton(
                                   icon: const Icon(Icons.lock, color: Colors.grey),

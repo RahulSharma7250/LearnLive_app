@@ -54,20 +54,22 @@ class AuthProvider with ChangeNotifier {
     if (_token != null && userData != null) {
       _user = User.fromJson(json.decode(userData));
       notifyListeners();
-      
-      // Validate token by making a request to the server
-      try {
-        await _getUserData();
-        return true;
-      } catch (e) {
-        // If token is invalid, log out the user
-        await logout();
-        return false;
-      }
-    }
     
-    return false;
+    // Validate token by making a request to the server
+    try {
+      await _getUserData();
+      print('Auto login successful for user: ${_user?.name}, role: ${_user?.role}');
+      return true;
+    } catch (e) {
+      // If token is invalid, log out the user
+      print('Auto login failed: $e');
+      await logout();
+      return false;
+    }
   }
+  
+  return false;
+}
   
   Future<void> _loadUserData() async {
     _token = _prefs.getString('token');
@@ -300,4 +302,3 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 }
-

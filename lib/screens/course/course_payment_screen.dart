@@ -95,6 +95,7 @@ class _CoursePaymentScreenState extends State<CoursePaymentScreen> {
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
 
       if (success) {
+        // Ensure enrolled courses are refreshed
         await courseProvider.fetchEnrolledCourses(authProvider.token);
 
         if (!mounted) return;

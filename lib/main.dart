@@ -32,7 +32,17 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (ctx) => AuthProvider()),
-        ChangeNotifierProvider(create: (ctx) => CourseProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, CourseProvider>(
+          create: (ctx) => CourseProvider(),
+          update: (ctx, auth, previousCourseProvider) {
+            final courseProvider = previousCourseProvider ?? CourseProvider();
+            // Initialize course provider with auth token when available
+            if (auth.token != null) {
+              courseProvider.initialize(auth.token);
+            }
+            return courseProvider;
+          },
+        ),
       ],
       child: Consumer<AuthProvider>(
         builder: (ctx, auth, _) => MaterialApp(
@@ -83,4 +93,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

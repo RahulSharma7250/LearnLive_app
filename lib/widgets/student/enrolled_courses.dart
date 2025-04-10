@@ -3,19 +3,19 @@ import 'package:provider/provider.dart';
 import '../../providers/course_provider.dart';
 import '../../models/course.dart';
 
-class EnrolledCourses extends StatelessWidget {
-  const EnrolledCourses({Key? key}) : super(key: key);
+class EnrolledCourse extends StatelessWidget {
+  const EnrolledCourse({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final courseProvider = Provider.of<CourseProvider>(context);
-    final enrolledCourses = courseProvider.enrolledCourses;
+    final enrolledCourse = courseProvider.enrolledCourses;
     
     if (courseProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
     
-    if (enrolledCourses.isEmpty) {
+    if (enrolledCourse.isEmpty) {
       return const Card(
         child: Padding(
           padding: EdgeInsets.all(16.0),
@@ -35,9 +35,9 @@ class EnrolledCourses extends StatelessWidget {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: enrolledCourses.length,
+      itemCount: enrolledCourse.length,
       itemBuilder: (ctx, index) {
-        return _buildCourseCard(context, enrolledCourses[index]);
+        return _buildCourseCard(context, enrolledCourse[index]);
       },
     );
   }

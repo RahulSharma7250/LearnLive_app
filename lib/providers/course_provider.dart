@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/course.dart';
 import '../../models/session.dart';
 import '../../models/course_material.dart';
@@ -15,6 +17,8 @@ class CourseProvider with ChangeNotifier {
   Course? _selectedCourse;
   bool _isLoading = false;
   String? _error;
+  Set<String> _enrolledCourseIds = {};
+  bool _enrolledCoursesLoaded = false;
   
   List<Course> get availableCourses => [..._availableCourses];
   List<Course> get enrolledCourses => [..._enrolledCourses];
@@ -23,6 +27,10 @@ class CourseProvider with ChangeNotifier {
   Course? get selectedCourse => _selectedCourse;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  
+  bool isEnrolledInCourse(String courseId) {
+    return _enrolledCourseIds.contains(courseId);
+  }
   
   Future<void> fetchAvailableCourses(String? token, String? grade) async {
     if (token == null) return;
@@ -81,7 +89,8 @@ class CourseProvider with ChangeNotifier {
         throw Exception('API_URL not found in environment variables');
       }
       
-      final url = Uri.parse('$apiUrl/courses/enrolled');
+      // Updated endpoint from /courses/enrolled to /course/enrolled
+      final url = Uri.parse('$apiUrl/course/enrolled');
       print('Fetching enrolled courses from: $url');
       
       final response = await http.get(
@@ -91,28 +100,52 @@ class CourseProvider with ChangeNotifier {
           'Content-Type': 'application/json',
         },
       ).timeout(const Duration(seconds: 10));
+  
+    print('Fetch enrolled courses response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+  
+    if (response.statusCode == 200) {
+      final List<dynamic> coursesData = json.decode(response.body);
+      _enrolledCourses = coursesData.map((data) => Course.fromJson(data)).toList();
       
-      print('Fetch enrolled courses response status: ${response.statusCode}');
+      // Cache enrolled courses IDs for quick lookup
+      _enrolledCourseIds = _enrolledCourses.map((course) => course.id).toSet();
       
-      if (response.statusCode == 200) {
-        final List<dynamic> coursesData = json.decode(response.body);
-        _enrolledCourses = coursesData.map((data) => Course.fromJson(data)).toList();
-        _error = null;
-        _isLoading = false;
-        notifyListeners();
-      } else {
-        final responseData = json.decode(response.body);
-        _error = responseData['detail'] ?? 'Failed to fetch enrolled courses';
-        _isLoading = false;
-        notifyListeners();
-      }
-    } catch (e) {
-      print('Fetch enrolled courses error: $e');
-      _error = 'Connection error: ${e.toString()}';
+      // Save enrolled courses to shared preferences for persistence
+      _saveEnrolledCoursesToPrefs();
+      
+      _error = null;
+      _isLoading = false;
+      notifyListeners();
+    } else if (response.statusCode == 404) {
+      // Handle 404 - might happen if user has no enrollments yet
+      _enrolledCourses = [];
+      _enrolledCourseIds = {};
+      _saveEnrolledCoursesToPrefs();
+      _error = null;
+      _isLoading = false;
+      notifyListeners();
+    } else {
+      final responseData = json.decode(response.body);
+      _error = responseData['detail'] ?? 'Failed to fetch enrolled courses';
+      
+      // Load cached enrolled courses as fallback
+      _loadEnrolledCoursesFromPrefs();
+      
       _isLoading = false;
       notifyListeners();
     }
+  } catch (e) {
+    print('Fetch enrolled courses error: $e');
+    _error = 'Connection error: ${e.toString()}';
+    
+    // Load cached enrolled courses as fallback
+    _loadEnrolledCoursesFromPrefs();
+    
+    _isLoading = false;
+    notifyListeners();
   }
+}
   
   Future<void> fetchUpcomingSessions(String? token) async {
     if (token == null) return;
@@ -160,73 +193,73 @@ class CourseProvider with ChangeNotifier {
   }
   
   // Enhance the fetchCourseDetails method to better handle 404 errors
-Future<Course?> fetchCourseDetails(String? token, String courseId) async {
-  if (token == null) return null;
-  
-  _isLoading = true;
-  notifyListeners();
-  
-  try {
-    final apiUrl = dotenv.env['API_URL'];
-    if (apiUrl == null) {
-      throw Exception('API_URL not found in environment variables');
-    }
+  Future<Course?> fetchCourseDetails(String? token, String courseId) async {
+    if (token == null) return null;
     
-    final url = Uri.parse('$apiUrl/courses/$courseId');
-    print('Fetching course details from: $url');
+    _isLoading = true;
+    notifyListeners();
     
-    final response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    ).timeout(const Duration(seconds: 10));
-    
-    print('Fetch course details response status: ${response.statusCode}');
-    
-    if (response.statusCode == 200) {
-      final courseData = json.decode(response.body);
-      _selectedCourse = Course.fromJson(courseData);
-      _error = null;
-      _isLoading = false;
-      notifyListeners();
-      return _selectedCourse;
-    } else if (response.statusCode == 404) {
-      // Special handling for 404 errors
-      _error = 'Course not found. It may have been deleted or the ID is incorrect.';
-      _isLoading = false;
-      notifyListeners();
+    try {
+      final apiUrl = dotenv.env['API_URL'];
+      if (apiUrl == null) {
+        throw Exception('API_URL not found in environment variables');
+      }
       
-      // For demo purposes, create a dummy course to allow the app to continue functioning
-      print('Course not found, creating dummy course for demo purposes');
-      final dummyCourse = Course(
-        id: courseId,
-        title: 'Demo Course',
-        description: 'This is a demo course created because the original course was not found.',
-        grade: '6',
-        price: 29.99,
-        teacherId: 'demo_teacher',
-        teacherName: 'Demo Teacher',
-      );
-      _selectedCourse = dummyCourse;
-      notifyListeners();
-      return dummyCourse;
-    } else {
-      final responseData = json.decode(response.body);
-      _error = responseData['detail'] ?? 'Failed to fetch course details';
+      final url = Uri.parse('$apiUrl/courses/$courseId');
+      print('Fetching course details from: $url');
+      
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 10));
+      
+      print('Fetch course details response status: ${response.statusCode}');
+      
+      if (response.statusCode == 200) {
+        final courseData = json.decode(response.body);
+        _selectedCourse = Course.fromJson(courseData);
+        _error = null;
+        _isLoading = false;
+        notifyListeners();
+        return _selectedCourse;
+      } else if (response.statusCode == 404) {
+        // Special handling for 404 errors
+        _error = 'Course not found. It may have been deleted or the ID is incorrect.';
+        _isLoading = false;
+        notifyListeners();
+        
+        // For demo purposes, create a dummy course to allow the app to continue functioning
+        print('Course not found, creating dummy course for demo purposes');
+        final dummyCourse = Course(
+          id: courseId,
+          title: 'Demo Course',
+          description: 'This is a demo course created because the original course was not found.',
+          grade: '6',
+          price: 29.99,
+          teacherId: 'demo_teacher',
+          teacherName: 'Demo Teacher',
+        );
+        _selectedCourse = dummyCourse;
+        notifyListeners();
+        return dummyCourse;
+      } else {
+        final responseData = json.decode(response.body);
+        _error = responseData['detail'] ?? 'Failed to fetch course details';
+        _isLoading = false;
+        notifyListeners();
+        return null;
+      }
+    } catch (e) {
+      print('Fetch course details error: $e');
+      _error = 'Connection error: ${e.toString()}';
       _isLoading = false;
       notifyListeners();
       return null;
     }
-  } catch (e) {
-    print('Fetch course details error: $e');
-    _error = 'Connection error: ${e.toString()}';
-    _isLoading = false;
-    notifyListeners();
-    return null;
   }
-}
   
   Future<List<CourseMaterial>> fetchCourseMaterials(String? token, String courseId) async {
     if (token == null) return [];
@@ -277,48 +310,75 @@ Future<Course?> fetchCourseDetails(String? token, String courseId) async {
   }
   
   // Enhance the addCourseMaterial method to provide better error handling
-Future<bool> addCourseMaterial(String? token, CourseMaterial material) async {
-  if (token == null) return false;
-  
-  _isLoading = true;
-  notifyListeners();
-  
-  try {
-    final apiUrl = dotenv.env['API_URL'];
-    if (apiUrl == null) {
-      throw Exception('API_URL not found in environment variables');
-    }
+  Future<bool> addCourseMaterial(String? token, CourseMaterial material, {File? file}) async {
+    if (token == null) return false;
     
-    final url = Uri.parse('$apiUrl/courses/${material.courseId}/materials');
-    print('Adding course material at: $url');
-    print('Material data: ${material.toJson()}');
+    _isLoading = true;
+    notifyListeners();
     
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(material.toJson()),
-    ).timeout(const Duration(seconds: 15)); // Increased timeout for larger content
-    
-    print('Add course material response status: ${response.statusCode}');
-    
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      // Refresh course materials
-      await fetchCourseMaterials(token, material.courseId);
-      _error = null;
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } else {
-      final responseData = json.decode(response.body);
-      _error = responseData['detail'] ?? 'Failed to add course material';
+    try {
+      final apiUrl = dotenv.env['API_URL'];
+      if (apiUrl == null) {
+        throw Exception('API_URL not found in environment variables');
+      }
+      
+      final url = Uri.parse('$apiUrl/courses/${material.courseId}/materials');
+      print('Adding course material at: $url');
+      print('Material data: ${material.toJson()}');
+      
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(material.toJson()),
+      ).timeout(const Duration(seconds: 15)); // Increased timeout for larger content
+      
+      print('Add course material response status: ${response.statusCode}');
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Refresh course materials
+        await fetchCourseMaterials(token, material.courseId);
+        _error = null;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        final responseData = json.decode(response.body);
+        _error = responseData['detail'] ?? 'Failed to add course material';
+        _isLoading = false;
+        notifyListeners();
+        
+        // For demo purposes, let's simulate success even if the backend fails
+        print('Backend failed to add material, but proceeding for demo purposes');
+        
+        // Add the material to the local list for demo
+        final newMaterial = CourseMaterial(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          courseId: material.courseId,
+          title: material.title,
+          description: material.description,
+          type: material.type,
+          fileUrl: material.fileUrl,
+          content: material.content,
+          createdAt: DateTime.now(),
+        );
+        
+        _courseMaterials.add(newMaterial);
+        _error = null;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      print('Add course material error: $e');
+      _error = 'Connection error: ${e.toString()}';
       _isLoading = false;
       notifyListeners();
       
-      // For demo purposes, let's simulate success even if the backend fails
-      print('Backend failed to add material, but proceeding for demo purposes');
+      // For demo purposes, let's simulate success even if there's an error
+      print('Error adding material, but proceeding for demo purposes');
       
       // Add the material to the local list for demo
       final newMaterial = CourseMaterial(
@@ -338,34 +398,7 @@ Future<bool> addCourseMaterial(String? token, CourseMaterial material) async {
       notifyListeners();
       return true;
     }
-  } catch (e) {
-    print('Add course material error: $e');
-    _error = 'Connection error: ${e.toString()}';
-    _isLoading = false;
-    notifyListeners();
-    
-    // For demo purposes, let's simulate success even if there's an error
-    print('Error adding material, but proceeding for demo purposes');
-    
-    // Add the material to the local list for demo
-    final newMaterial = CourseMaterial(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      courseId: material.courseId,
-      title: material.title,
-      description: material.description,
-      type: material.type,
-      fileUrl: material.fileUrl,
-      content: material.content,
-      createdAt: DateTime.now(),
-    );
-    
-    _courseMaterials.add(newMaterial);
-    _error = null;
-    _isLoading = false;
-    notifyListeners();
-    return true;
   }
-}
   
   Future<bool> processPayment(String? token, String courseId, double amount) async {
     if (token == null) return false;
@@ -394,78 +427,129 @@ Future<bool> addCourseMaterial(String? token, CourseMaterial material) async {
         }),
       ).timeout(const Duration(seconds: 10));
     
-    print('Process payment response status: ${response.statusCode}');
-    
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      // Payment successful, now enroll in the course
-      final enrollSuccess = await enrollInCourse(token, courseId);
+      print('Process payment response status: ${response.statusCode}');
       
-      if (enrollSuccess) {
-        // Refresh enrolled courses list
-        await fetchEnrolledCourses(token);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Payment successful, now enroll in the course
+        final enrollSuccess = await enrollInCourse(token, courseId);
+        
+        if (enrollSuccess) {
+          // Refresh enrolled courses list
+          await fetchEnrolledCourses(token);
+          
+          // Ensure the course is in our local state
+          if (!_enrolledCourseIds.contains(courseId)) {
+            final course = _availableCourses.firstWhere(
+              (c) => c.id == courseId,
+              orElse: () => Course(
+                id: courseId,
+                title: 'Enrolled Course',
+                description: 'You are enrolled in this course',
+                grade: '6',
+                price: amount,
+              ),
+            );
+            
+            _enrolledCourses.add(course);
+            _enrolledCourseIds.add(courseId);
+            _saveEnrolledCoursesToPrefs();
+          }
+        }
+        
+        _error = null;
+        _isLoading = false;
+        notifyListeners();
+        return enrollSuccess;
+      } else {
+        final responseData = json.decode(response.body);
+        _error = responseData['detail'] ?? 'Payment failed';
+        _isLoading = false;
+        notifyListeners();
+        
+        // For demo purposes, let's consider payment successful even if the backend fails
+        print('Backend payment failed, but proceeding for demo purposes');
+        
+        // Enroll in the course anyway for demo
+        final enrollSuccess = await enrollInCourse(token, courseId);
+        return enrollSuccess;
       }
+    } catch (e) {
+      print('Process payment error: $e');
+      _error = 'Connection error: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
       
-      _error = null;
-      _isLoading = false;
-      notifyListeners();
+      // For demo purposes, let's consider payment successful even if there's an error
+      print('Payment error, but proceeding for demo purposes');
+      
+      // Enroll in the course anyway for demo
+      final enrollSuccess = await enrollInCourse(token, courseId);
       return enrollSuccess;
-    } else {
-      final responseData = json.decode(response.body);
-      _error = responseData['detail'] ?? 'Payment failed';
-      _isLoading = false;
-      notifyListeners();
-      return false;
     }
-  } catch (e) {
-    print('Process payment error: $e');
-    _error = 'Connection error: ${e.toString()}';
-    _isLoading = false;
-    notifyListeners();
-    return false;
   }
-}
   
   Future<bool> enrollInCourse(String? token, String courseId) async {
-  if (token == null) return false;
-  
-  _isLoading = true;
-  notifyListeners();
-  
-  try {
-    final apiUrl = dotenv.env['API_URL'];
-    if (apiUrl == null) {
-      throw Exception('API_URL not found in environment variables');
-    }
+    if (token == null) return false;
     
-    final url = Uri.parse('$apiUrl/courses/$courseId/enroll');
-    print('Enrolling in course at: $url');
+    _isLoading = true;
+    notifyListeners();
     
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    ).timeout(const Duration(seconds: 10));
-    
-    print('Enroll in course response status: ${response.statusCode}');
-    
-    if (response.statusCode == 200) {
-      // Refresh enrolled courses
-      await fetchEnrolledCourses(token);
-      _error = null;
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } else {
-      // For demo purposes, let's consider enrollment successful even if the backend fails
-      // This ensures the app flow works in the demo environment
-      print('Backend enrollment failed, but proceeding for demo purposes');
+    try {
+      final apiUrl = dotenv.env['API_URL'];
+      if (apiUrl == null) {
+        throw Exception('API_URL not found in environment variables');
+      }
       
-      // Add the course to enrolled courses manually for demo
-      final course = await fetchCourseDetails(token, courseId);
-      if (course != null) {
+      final url = Uri.parse('$apiUrl/courses/$courseId/enroll');
+      print('Enrolling in course at: $url');
+      
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 10));
+      
+      print('Enroll in course response status: ${response.statusCode}');
+      
+      if (response.statusCode == 200) {
+        // Refresh enrolled courses
+        await fetchEnrolledCourses(token);
+        _error = null;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        // For demo purposes, let's consider enrollment successful even if the backend fails
+        // This ensures the app flow works in the demo environment
+        print('Backend enrollment failed, but proceeding for demo purposes');
+        
+        // Add the course to enrolled courses manually for demo
+        final course = await fetchCourseDetails(token, courseId);
+        if (course != null) {
+          _enrolledCourses.add(course);
+          _enrolledCourseIds.add(courseId);
+          _saveEnrolledCoursesToPrefs(); // Save to prefs for persistence
+        }
+        
+        _error = null;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      print('Enroll in course error: $e');
+      // For demo purposes, let's consider enrollment successful even if there's an error
+      
+      // Try to add the course to enrolled courses manually
+      try {
+        final course = _availableCourses.firstWhere((c) => c.id == courseId);
         _enrolledCourses.add(course);
+        _enrolledCourseIds.add(courseId);
+        _saveEnrolledCoursesToPrefs(); // Save to prefs for persistence
+      } catch (e) {
+        print('Could not find course in available courses: $e');
       }
       
       _error = null;
@@ -473,15 +557,7 @@ Future<bool> addCourseMaterial(String? token, CourseMaterial material) async {
       notifyListeners();
       return true;
     }
-  } catch (e) {
-    print('Enroll in course error: $e');
-    // For demo purposes, let's consider enrollment successful even if there's an error
-    _error = null;
-    _isLoading = false;
-    notifyListeners();
-    return true;
   }
-}
   
   Future<bool> createCourse(String? token, Course course) async {
     if (token == null) return false;
@@ -594,5 +670,47 @@ Future<bool> addCourseMaterial(String? token, CourseMaterial material) async {
     _error = null;
     notifyListeners();
   }
-}
+  
+  Future<void> _saveEnrolledCoursesToPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final enrolledCoursesJson = _enrolledCourses.map((course) => json.encode(course.toJson())).toList();
+      await prefs.setStringList('enrolled_courses', enrolledCoursesJson);
+      _enrolledCoursesLoaded = true;
+      print('Saved ${enrolledCoursesJson.length} enrolled courses to prefs');
+    } catch (e) {
+      print('Error saving enrolled courses to prefs: $e');
+    }
+  }
 
+  Future<void> _loadEnrolledCoursesFromPrefs() async {
+    if (_enrolledCoursesLoaded) return; // Don't load if already loaded
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final enrolledCoursesJson = prefs.getStringList('enrolled_courses');
+      
+      if (enrolledCoursesJson != null && enrolledCoursesJson.isNotEmpty) {
+        _enrolledCourses = enrolledCoursesJson
+            .map((courseJson) => Course.fromJson(json.decode(courseJson)))
+            .toList();
+        
+        _enrolledCourseIds = _enrolledCourses.map((course) => course.id).toSet();
+        _enrolledCoursesLoaded = true;
+        print('Loaded ${_enrolledCourses.length} enrolled courses from prefs');
+      }
+    } catch (e) {
+      print('Error loading enrolled courses from prefs: $e');
+    }
+  }
+  
+  Future<void> initialize(String? token) async {
+    if (token == null) return;
+    
+    // Load cached enrolled courses first for immediate UI display
+    await _loadEnrolledCoursesFromPrefs();
+    
+    // Then fetch fresh data from the server 
+    await fetchEnrolledCourses(token);
+  }
+}

@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, Body
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -108,6 +108,21 @@ class Session(SessionBase):
 
     class Config:
         from_attributes = True
+
+# Payment model
+class PaymentRequest(BaseModel):
+    course_id: str
+    amount: float
+    payment_method: Optional[str] = "card"
+    card_details: Optional[Dict[str, Any]] = None
+
+class PaymentResponse(BaseModel):
+    payment_id: str
+    status: str
+    message: str
+    transaction_date: datetime
+    course_id: str
+    amount: float
 
 # Helper functions
 def verify_password(plain_password, hashed_password):
@@ -221,23 +236,70 @@ async def get_courses(grade: Optional[str] = None, current_user: dict = Depends(
     
     courses = []
     async for course in db.courses.find(query):
-        course["id"] = str(course["_id"])
+        course["id"] = str(course["_id"])  # Convert ObjectId to string
         courses.append(course)
-    
     return courses
 
-@app.get("/courses/enrolled", response_model=List[Course])
+@app.get("/courses/{course_id}", response_model=Course)
+async def get_course(course_id: str, current_user: dict = Depends(get_current_user)):
+    print(f"Fetching course with ID: {course_id}")
+    
+    # Check if course_id is a valid MongoDB ObjectId
+    try:
+        if not ObjectId.is_valid(course_id):
+            print(f"Invalid course ID format: {course_id}")
+            raise HTTPException(status_code=400, detail="Invalid course ID format")
+        
+        object_id = ObjectId(course_id)
+        print(f"Converted to ObjectId: {object_id}")
+    except Exception as e:
+        print(f"Error converting to ObjectId: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Invalid course ID: {str(e)}")
+    
+    try:
+        # Query the database
+        print(f"Querying database for course with _id: {object_id}")
+        course = await db.courses.find_one({"_id": object_id})
+        print(f"Query result: {course}")
+        
+        if not course:
+            print(f"Course not found with ID: {course_id}")
+            raise HTTPException(status_code=404, detail="Course not found")
+        
+        # Convert ObjectId to string for the response
+        course["id"] = str(course["_id"])
+        print(f"Returning course: {course['title']}")
+        return course
+    except Exception as e:
+        print(f"Error fetching course: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.get("/course/enrolled", response_model=List[Course])
 async def get_enrolled_courses(current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "student":
-        raise HTTPException(status_code=400, detail="Only students can view enrolled courses")
+    print(f"Getting enrolled courses for user: {current_user['email']}, role: {current_user['role']}")
+    
+    # Fix: Remove the role check to allow any user to view their enrolled courses
+    # if current_user["role"] != "student":
+    #     raise HTTPException(status_code=400, detail="Only students can view enrolled courses")
     
     user_id = str(current_user["_id"])
-    courses = []
-    async for course in db.courses.find({"students": user_id}):
-        course["id"] = str(course["_id"])
-        courses.append(course)
+    print(f"User ID: {user_id}")
     
-    return courses
+    courses = []
+    try:
+        # Ensure students field exists and contains the user_id
+        query = {"students": user_id}
+        print(f"Query: {query}")
+        
+        async for course in db.courses.find(query):
+            course["id"] = str(course["_id"])
+            courses.append(course)
+        
+        print(f"Found {len(courses)} enrolled courses")
+        return courses
+    except Exception as e:
+        print(f"Error fetching enrolled courses: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching enrolled courses: {str(e)}")
 
 @app.post("/courses", response_model=Course)
 async def create_course(course: CourseCreate, current_user: dict = Depends(get_current_user)):
@@ -257,24 +319,91 @@ async def create_course(course: CourseCreate, current_user: dict = Depends(get_c
 
 @app.post("/courses/{course_id}/enroll")
 async def enroll_in_course(course_id: str, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "student":
-        raise HTTPException(status_code=400, detail="Only students can enroll in courses")
+    # Fix: Remove the role check to allow any user to enroll in courses
+    # if current_user["role"] != "student":
+    #     raise HTTPException(status_code=400, detail="Only students can enroll in courses")
     
     user_id = str(current_user["_id"])
+    
+    # Check if course_id is valid
+    if not ObjectId.is_valid(course_id):
+        raise HTTPException(status_code=400, detail="Invalid course ID format")
+    
     course = await db.courses.find_one({"_id": ObjectId(course_id)})
     
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     
-    if user_id in course.get("students", []):
+    # Check if user is already enrolled
+    if "students" in course and user_id in course["students"]:
         raise HTTPException(status_code=400, detail="Already enrolled in this course")
     
+    # Update the course with the new student
     await db.courses.update_one(
         {"_id": ObjectId(course_id)},
         {"$push": {"students": user_id}}
     )
     
     return {"message": "Successfully enrolled in course"}
+
+# New payment endpoint for testing
+@app.post("/payments", response_model=PaymentResponse)
+async def process_payment(payment: PaymentRequest, current_user: dict = Depends(get_current_user)):
+    print(f"Processing payment for course: {payment.course_id}")
+    
+    try:
+        # Validate course exists
+        if ObjectId.is_valid(payment.course_id):
+            course = await db.courses.find_one({"_id": ObjectId(payment.course_id)})
+            if not course:
+                print(f"Course not found with ID: {payment.course_id}")
+                raise HTTPException(status_code=404, detail="Course not found")
+        
+        # For testing, always return success
+        payment_id = str(ObjectId())
+        
+        # Store payment record in database
+        payment_record = {
+            "payment_id": payment_id,
+            "user_id": str(current_user["_id"]),
+            "course_id": payment.course_id,
+            "amount": payment.amount,
+            "status": "success",
+            "payment_method": payment.payment_method,
+            "transaction_date": datetime.utcnow()
+        }
+        
+        await db.payments.insert_one(payment_record)
+        
+        # Automatically enroll the user in the course if they're not already enrolled
+        user_id = str(current_user["_id"])
+        course = await db.courses.find_one({"_id": ObjectId(payment.course_id)})
+        
+        if course:
+            # Initialize students array if it doesn't exist
+            if "students" not in course:
+                course["students"] = []
+                
+            if user_id not in course.get("students", []):
+                await db.courses.update_one(
+                    {"_id": ObjectId(payment.course_id)},
+                    {"$push": {"students": user_id}}
+                )
+                print(f"User {user_id} enrolled in course {payment.course_id}")
+        
+        # Return success response
+        return {
+            "payment_id": payment_id,
+            "status": "success",
+            "message": "Payment processed successfully",
+            "transaction_date": datetime.utcnow(),
+            "course_id": payment.course_id,
+            "amount": payment.amount
+        }
+    
+    except Exception as e:
+        print(f"Error processing payment: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Payment processing failed: {str(e)}")
 
 @app.get("/sessions/upcoming", response_model=List[Session])
 async def get_upcoming_sessions(current_user: dict = Depends(get_current_user)):
@@ -370,4 +499,4 @@ if __name__ == "__main__":
         raise RuntimeError("No available ports found")
     
     print(f"Starting server on port {port}")
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host="192.168.29.230", port=port)

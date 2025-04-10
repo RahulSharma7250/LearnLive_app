@@ -39,6 +39,9 @@ class _StudentDashboardState extends State<StudentDashboard> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final courseProvider = Provider.of<CourseProvider>(context, listen: false);
       
+      // Initialize the course provider
+      await courseProvider.initialize(authProvider.token);
+      
       // Fetch data
       await Future.wait([
         courseProvider.fetchAvailableCourses(
@@ -150,7 +153,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const EnrolledCourses(),
+                    const EnrolledCourse(),
                     const SizedBox(height: 24),
                     
                     // Available courses
@@ -170,4 +173,3 @@ class _StudentDashboardState extends State<StudentDashboard> {
     );
   }
 }
-
