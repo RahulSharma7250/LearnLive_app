@@ -20,6 +20,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -28,8 +31,8 @@ class _SplashScreenState extends State<SplashScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).primaryColor,
-              Theme.of(context).primaryColor.withOpacity(0.8),
+              Color(0xFF3A8DFF), // Primary Gradient 1
+              Color(0xFFA259FF), // Primary Gradient 2
             ],
           ),
         ),
@@ -43,31 +46,31 @@ class _SplashScreenState extends State<SplashScreen> {
               color: Colors.white,
             ),
             const SizedBox(height: 24),
-            
+
             // App name
-            const Text(
+            Text(
               'LearnLive',
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: isDark ? Color(0xFFE4E4E7) : Color(0xFF1F2937), // Text - Primary
               ),
             ),
             const SizedBox(height: 8),
-            
+
             // Tagline
-            const Text(
+            Text(
               'Interactive Learning Platform',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.white,
+                color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563), // Text - Secondary
               ),
             ),
             const SizedBox(height: 48),
-            
+
             // Loading indicator
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF60A5FA)), // Accent Color 1
             ),
           ],
         ),
@@ -75,4 +78,3 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
-

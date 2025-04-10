@@ -15,14 +15,14 @@ class _CreateCourseScreenState extends State<CreateCourseScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   String? _error;
-  
+
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   String _selectedGrade = '5';
-  
+
   final List<String> _grades = ['5', '6', '7', '8'];
-  
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -30,30 +30,30 @@ class _CreateCourseScreenState extends State<CreateCourseScreen> {
     _priceController.dispose();
     super.dispose();
   }
-  
+
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    
+
     setState(() {
       _isLoading = true;
       _error = null;
     });
-    
+
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final courseProvider = Provider.of<CourseProvider>(context, listen: false);
-      
+
       final price = double.tryParse(_priceController.text) ?? 0.0;
-      
+
       // Make sure we have the user data
       if (authProvider.user == null) {
         throw Exception('User data not available');
       }
-      
+
       print('Creating course as teacher: ${authProvider.user!.id}, role: ${authProvider.user!.role}');
-      
+
       final newCourse = Course(
         id: '', // Will be assigned by the backend
         title: _titleController.text,
@@ -63,9 +63,9 @@ class _CreateCourseScreenState extends State<CreateCourseScreen> {
         teacherId: authProvider.user!.id,
         teacherName: authProvider.user!.name,
       );
-      
+
       final success = await courseProvider.createCourse(authProvider.token, newCourse);
-      
+
       if (success) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -87,9 +87,12 @@ class _CreateCourseScreenState extends State<CreateCourseScreen> {
       });
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create New Course'),
@@ -107,31 +110,34 @@ class _CreateCourseScreenState extends State<CreateCourseScreen> {
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade100,
+                    color: Color(0xFFEF4444).withOpacity(0.2), // Error/Red
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade300),
+                    border: Border.all(color: Color(0xFFEF4444)), // Error/Red
                   ),
                   child: Text(
                     _error!,
-                    style: TextStyle(color: Colors.red.shade800),
+                    style: TextStyle(color: Color(0xFFEF4444)), // Error/Red
                   ),
                 ),
-              
+
               const Text(
                 'Course Information',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: Color(0xFF60A5FA), // Accent Color 1
                 ),
               ),
               const SizedBox(height: 16),
-              
+
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Course Title',
                   hintText: 'e.g., Mathematics for 6th Grade',
                   border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
+                  hintStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -141,13 +147,15 @@ class _CreateCourseScreenState extends State<CreateCourseScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Course Description',
                   hintText: 'Describe what students will learn in this course',
                   border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
+                  hintStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
                 ),
                 maxLines: 3,
                 validator: (value) {
@@ -158,11 +166,12 @@ class _CreateCourseScreenState extends State<CreateCourseScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Grade Level',
                   border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
                 ),
                 value: _selectedGrade,
                 items: _grades.map((grade) {
@@ -186,13 +195,15 @@ class _CreateCourseScreenState extends State<CreateCourseScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               TextFormField(
                 controller: _priceController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Price (\$)',
                   hintText: '29.99',
                   border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
+                  hintStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -206,16 +217,15 @@ class _CreateCourseScreenState extends State<CreateCourseScreen> {
                 },
               ),
               const SizedBox(height: 32),
-              
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _submitForm,
                   style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 136, 82, 229), // 💜 Custom color
-                        foregroundColor: Colors.white, // 👈 Text color set to white
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                      
+                    backgroundColor: Color(0xFF60A5FA), // Accent Color 1
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                   ),
                   child: _isLoading
                       ? const CircularProgressIndicator()
@@ -229,4 +239,3 @@ class _CreateCourseScreenState extends State<CreateCourseScreen> {
     );
   }
 }
-

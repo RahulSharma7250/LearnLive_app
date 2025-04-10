@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/course_provider.dart';
 
+const Color primaryPurple = Color(0xFF8852E5);
+
 class ClassSelector extends StatefulWidget {
   const ClassSelector({Key? key}) : super(key: key);
 
@@ -26,8 +28,10 @@ class _ClassSelectorState extends State<ClassSelector> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final courseProvider = Provider.of<CourseProvider>(context);
-    
+
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -43,10 +47,18 @@ class _ClassSelectorState extends State<ClassSelector> {
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _selectedClass,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Select your class',
-                prefixIcon: Icon(Icons.school),
+                prefixIcon: Icon(Icons.school, color: primaryPurple),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: primaryPurple),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
+              iconEnabledColor: primaryPurple,
               items: const [
                 DropdownMenuItem(
                   value: '5',
@@ -73,16 +85,16 @@ class _ClassSelectorState extends State<ClassSelector> {
                           _selectedClass = value;
                           _isLoading = true;
                         });
-                        
+
                         // Update user's class level
                         await authProvider.updateClassLevel(value!);
-                        
+
                         // Fetch courses for the selected class
                         await courseProvider.fetchAvailableCourses(
                           authProvider.token,
                           value,
                         );
-                        
+
                         setState(() {
                           _isLoading = false;
                         });
@@ -98,6 +110,7 @@ class _ClassSelectorState extends State<ClassSelector> {
                     width: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
+                      color: primaryPurple,
                     ),
                   ),
                 ),
@@ -108,4 +121,3 @@ class _ClassSelectorState extends State<ClassSelector> {
     );
   }
 }
-

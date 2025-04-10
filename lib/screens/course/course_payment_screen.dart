@@ -108,7 +108,7 @@ class _CoursePaymentScreenState extends State<CoursePaymentScreen> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.check_circle, color: Colors.green, size: 64),
+                const Icon(Icons.check_circle, color: Color(0xFF10B981), size: 64), // Success/Green
                 const SizedBox(height: 16),
                 const Text(
                   'Your payment was processed successfully!',
@@ -151,6 +151,9 @@ class _CoursePaymentScreenState extends State<CoursePaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     if (_course == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Payment', style: TextStyle(fontFamily: 'Poppins'))),
@@ -166,6 +169,7 @@ class _CoursePaymentScreenState extends State<CoursePaymentScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Card(
+              color: isDark ? Color(0xFF161B22) : Color(0xFFF9FAFB), // Card Background
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -173,19 +177,20 @@ class _CoursePaymentScreenState extends State<CoursePaymentScreen> {
                   children: [
                     Text(
                       'Course: ${_course!.title}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         fontFamily: 'Poppins',
+                        color: isDark ? Color(0xFFE4E4E7) : Color(0xFF1F2937), // Text - Primary
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Teacher: ${_course!.teacherName ?? 'Unknown Teacher'}',
-                      style: const TextStyle(fontSize: 16, fontFamily: 'Poppins'),
+                      style: TextStyle(fontSize: 16, fontFamily: 'Poppins', color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
                     ),
                     const SizedBox(height: 8),
-                    Text('Grade: ${_course!.grade}', style: const TextStyle(fontSize: 16, fontFamily: 'Poppins')),
+                    Text('Grade: ${_course!.grade}', style: TextStyle(fontSize: 16, fontFamily: 'Poppins', color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563))), // Text - Secondary
                     const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -199,7 +204,7 @@ class _CoursePaymentScreenState extends State<CoursePaymentScreen> {
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Colors.green,
+                            color: Color(0xFF10B981), // Success/Green
                             fontFamily: 'Poppins',
                           ),
                         ),
@@ -218,18 +223,18 @@ class _CoursePaymentScreenState extends State<CoursePaymentScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: Color(0xFF60A5FA).withOpacity(0.1), // Accent Color 1
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
+                border: Border.all(color: Color(0xFF60A5FA)), // Accent Color 1
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info, color: Colors.blue.shade700),
+                  Icon(Icons.info, color: Color(0xFF60A5FA)), // Accent Color 1
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'This is a demo payment form. The fields are pre-filled with test data. Just click "Pay Now" to proceed.',
-                      style: TextStyle(color: Colors.blue.shade700, fontSize: 14, fontFamily: 'Poppins'),
+                      style: TextStyle(color: Color(0xFF60A5FA), fontSize: 14, fontFamily: 'Poppins'), // Accent Color 1
                     ),
                   ),
                 ],
@@ -242,11 +247,11 @@ class _CoursePaymentScreenState extends State<CoursePaymentScreen> {
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade100,
+                  color: Color(0xFFEF4444).withOpacity(0.2), // Error/Red
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.shade300),
+                  border: Border.all(color: Color(0xFFEF4444)), // Error/Red
                 ),
-                child: Text(_error!, style: TextStyle(color: Colors.red.shade800, fontFamily: 'Poppins')),
+                child: Text(_error!, style: TextStyle(color: Color(0xFFEF4444), fontFamily: 'Poppins')), // Error/Red
               ),
             _buildTextField(_cardNumberController, 'Card Number', '1234 5678 9012 3456', Icons.credit_card),
             const SizedBox(height: 16),
@@ -269,7 +274,7 @@ class _CoursePaymentScreenState extends State<CoursePaymentScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _processPayment,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8852E5),
+                  backgroundColor: Color(0xFF60A5FA), // Accent Color 1
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   textStyle: const TextStyle(
@@ -295,18 +300,18 @@ class _CoursePaymentScreenState extends State<CoursePaymentScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: Color(0xFF9CA3AF).withOpacity(0.2), // Text - Secondary
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade300),
+                border: Border.all(color: Color(0xFF9CA3AF)), // Text - Secondary
               ),
               child: Row(
                 children: [
-                  Icon(Icons.security, color: Colors.grey.shade700),
+                  Icon(Icons.security, color: Color(0xFF9CA3AF)), // Text - Secondary
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Your payment information is secure and encrypted.',
-                      style: TextStyle(color: Colors.grey.shade700, fontSize: 14, fontFamily: 'Poppins'),
+                      style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 14, fontFamily: 'Poppins'), // Text - Secondary
                     ),
                   ),
                 ],
@@ -325,6 +330,9 @@ class _CoursePaymentScreenState extends State<CoursePaymentScreen> {
     IconData? icon, {
     bool obscure = false,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return TextFormField(
       controller: controller,
       obscureText: obscure,
@@ -333,12 +341,16 @@ class _CoursePaymentScreenState extends State<CoursePaymentScreen> {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        labelStyle: const TextStyle(fontFamily: 'Poppins'),
-        hintStyle: const TextStyle(fontFamily: 'Poppins'),
-        border: const OutlineInputBorder(),
+        labelStyle: TextStyle(fontFamily: 'Poppins', color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
+        hintStyle: TextStyle(fontFamily: 'Poppins', color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
+        border: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: isDark ? Color(0xFF2A2E35) : Color(0xFFE5E7EB), // Border/Line
+          ),
+        ),
         prefixIcon: icon != null ? Icon(icon) : null,
       ),
-      style: const TextStyle(fontFamily: 'Poppins'),
+      style: TextStyle(fontFamily: 'Poppins', color: isDark ? Color(0xFFE4E4E7) : Color(0xFF1F2937)), // Text - Primary
     );
   }
 }

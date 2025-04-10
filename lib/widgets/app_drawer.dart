@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 
+const Color primaryPurple = Color(0xFF8852E5);
+
 class AppDrawer extends StatelessWidget {
   const AppDrawer({Key? key}) : super(key: key);
 
@@ -10,109 +12,114 @@ class AppDrawer extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.user;
     final isStudent = authProvider.isStudent;
-    
+
     return Drawer(
       child: Column(
         children: [
-          // User info header
+          // Drawer header with user info
           UserAccountsDrawerHeader(
             accountName: Text(user?.name ?? 'User'),
             accountEmail: Text(user?.email ?? 'user@example.com'),
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white,
               child: Text(
-                user?.name?.substring(0, 1).toUpperCase() ?? 'U',
+                (user?.name?.isNotEmpty ?? false)
+                    ? user!.name[0].toUpperCase()
+                    : 'U',
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.indigo,
+                  color: primaryPurple,
                 ),
               ),
             ),
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
+            decoration: const BoxDecoration(
+              color: primaryPurple,
             ),
           ),
-          
-          // Menu items
-          ListTile(
-            leading: const Icon(Icons.dashboard),
-            title: const Text('Dashboard'),
+
+          // Dashboard
+          _buildListTile(
+            icon: Icons.dashboard,
+            title: 'Dashboard',
             onTap: () {
               Navigator.of(context).pop();
-              if (isStudent) {
-                Navigator.of(context).pushReplacementNamed('/student-dashboard');
-              } else {
-                Navigator.of(context).pushReplacementNamed('/teacher-dashboard');
-              }
+              Navigator.of(context).pushReplacementNamed(
+                isStudent ? '/student-dashboard' : '/teacher-dashboard',
+              );
             },
           ),
-          
+
+          // Conditional student/teacher options
           if (isStudent)
-            ListTile(
-              leading: const Icon(Icons.book),
-              title: const Text('My Courses'),
+            _buildListTile(
+              icon: Icons.book,
+              title: 'My Courses',
               onTap: () {
                 Navigator.of(context).pop();
-                // Navigate to enrolled courses
+                // TODO: Navigate to enrolled courses
               },
-            ),
-          
-          if (!isStudent)
-            ListTile(
-              leading: const Icon(Icons.add_box),
-              title: const Text('Create Course'),
+            )
+          else
+            _buildListTile(
+              icon: Icons.add_box,
+              title: 'Create Course',
               onTap: () {
                 Navigator.of(context).pop();
                 Navigator.of(context).pushNamed('/courses/create');
               },
             ),
-          
-          ListTile(
-            leading: const Icon(Icons.video_call),
-            title: const Text('Live Sessions'),
+
+          // Live Sessions
+          _buildListTile(
+            icon: Icons.video_call,
+            title: 'Live Sessions',
             onTap: () {
               Navigator.of(context).pop();
               Navigator.of(context).pushNamed('/live_session_screen');
             },
           ),
-          
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text('Profile'),
+
+          // Profile
+          _buildListTile(
+            icon: Icons.person,
+            title: 'Profile',
             onTap: () {
               Navigator.of(context).pop();
-              // Navigate to profile
+              // TODO: Navigate to profile
             },
           ),
-          
+
           const Divider(),
-          
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
+
+          // Settings
+          _buildListTile(
+            icon: Icons.settings,
+            title: 'Settings',
             onTap: () {
               Navigator.of(context).pop();
-              // Navigate to settings
+              // TODO: Navigate to settings
             },
           ),
-          
-          ListTile(
-            leading: const Icon(Icons.help),
-            title: const Text('Help & Support'),
+
+          // Help & Support
+          _buildListTile(
+            icon: Icons.help,
+            title: 'Help & Support',
             onTap: () {
               Navigator.of(context).pop();
-              // Navigate to help
+              // TODO: Navigate to help & support
             },
           ),
-          
+
           const Spacer(),
-          
+
           const Divider(),
-          
-          ListTile(
-            leading: const Icon(Icons.exit_to_app),
-            title: const Text('Logout'),
+
+          // Logout
+          _buildListTile(
+            icon: Icons.exit_to_app,
+            title: 'Logout',
             onTap: () async {
               await authProvider.logout();
               Navigator.of(context).pushReplacementNamed('/login');
@@ -122,5 +129,19 @@ class AppDrawer extends StatelessWidget {
       ),
     );
   }
-}
 
+  Widget _buildListTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.grey[700]),
+      title: Text(
+        title,
+        style: const TextStyle(fontSize: 16),
+      ),
+      onTap: onTap,
+    );
+  }
+}

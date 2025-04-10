@@ -22,8 +22,8 @@ class LoginScreen extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              colorScheme.primary,
-              colorScheme.primary.withOpacity(0.85),
+              Color(0xFF3A8DFF), // Primary Gradient 1
+              Color(0xFFA259FF), // Primary Gradient 2
             ],
           ),
         ),
@@ -36,11 +36,7 @@ class LoginScreen extends StatelessWidget {
                 const SizedBox(height: 40),
 
                 // Logo
-                Icon(
-                  Icons.school,
-                  size: 64,
-                  color: colorScheme.onPrimary,
-                ),
+                Icon(Icons.school, size: 64, color: colorScheme.onPrimary),
                 const SizedBox(height: 16),
 
                 // App name
@@ -64,7 +60,10 @@ class LoginScreen extends StatelessWidget {
 
                 // Login form
                 Card(
-                  color: theme.cardColor,
+                  color:
+                      theme.brightness == Brightness.dark
+                          ? Color(0xFF161B22)
+                          : Color(0xFFF9FAFB), // Card Background
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -78,7 +77,10 @@ class LoginScreen extends StatelessWidget {
                           'Login',
                           style: textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: colorScheme.onBackground,
+                            color:
+                                theme.brightness == Brightness.dark
+                                    ? Color(0xFFE4E4E7)
+                                    : Color(0xFF1F2937), // Text - Primary
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -88,12 +90,19 @@ class LoginScreen extends StatelessWidget {
                           isLogin: true,
                           isLoading: authProvider.isLoading,
                           onSubmit: (email, password, _, role) async {
-                            final success = await authProvider.login(email, password);
+                            final success = await authProvider.login(
+                              email,
+                              password,
+                            );
                             if (success) {
                               if (authProvider.isStudent) {
-                                Navigator.of(context).pushReplacementNamed('/student-dashboard');
+                                Navigator.of(
+                                  context,
+                                ).pushReplacementNamed('/student-dashboard');
                               } else {
-                                Navigator.of(context).pushReplacementNamed('/teacher-dashboard');
+                                Navigator.of(
+                                  context,
+                                ).pushReplacementNamed('/teacher-dashboard');
                               }
                             }
                           },
@@ -104,8 +113,11 @@ class LoginScreen extends StatelessWidget {
                             padding: const EdgeInsets.only(top: 16.0),
                             child: Text(
                               authProvider.error!,
-                              style: const TextStyle(
-                                color: Colors.redAccent,
+                              style: TextStyle(
+                                color:
+                                    theme.brightness == Brightness.dark
+                                        ? Color(0xFFEF4444)
+                                        : Color(0xFFDC2626), // Error/Red
                                 fontSize: 14,
                               ),
                             ),
@@ -119,13 +131,25 @@ class LoginScreen extends StatelessWidget {
                           children: [
                             Text(
                               'Don\'t have an account?',
-                              style: textTheme.bodyMedium,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color:
+                                    theme.brightness == Brightness.dark
+                                        ? Color(0xFF9CA3AF)
+                                        : Color(0xFF4B5563), // Text - Secondary
+                              ),
                             ),
                             TextButton(
                               onPressed: () {
-                                Navigator.of(context).pushReplacementNamed('/signup');
+                                Navigator.of(
+                                  context,
+                                ).pushReplacementNamed('/signup');
                               },
-                              child: const Text('Sign Up'),
+                              child: Text(
+                                'Sign Up',
+                                style: TextStyle(
+                                  color: Color(0xFF60A5FA), // Accent Color 1
+                                ),
+                              ),
                             ),
                           ],
                         ),

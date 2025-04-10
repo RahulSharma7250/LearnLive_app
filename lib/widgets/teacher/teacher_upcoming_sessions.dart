@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../../providers/course_provider.dart';
 import '../../models/session.dart';
 
+const Color primaryPurple = Color(0xFF8852E5);
+
 class TeacherUpcomingSessions extends StatelessWidget {
   const TeacherUpcomingSessions({Key? key}) : super(key: key);
 
@@ -11,11 +13,11 @@ class TeacherUpcomingSessions extends StatelessWidget {
   Widget build(BuildContext context) {
     final courseProvider = Provider.of<CourseProvider>(context);
     final upcomingSessions = courseProvider.upcomingSessions;
-    
+
     if (courseProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (upcomingSessions.isEmpty) {
       return const Card(
         child: Padding(
@@ -32,7 +34,7 @@ class TeacherUpcomingSessions extends StatelessWidget {
         ),
       );
     }
-    
+
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -44,36 +46,35 @@ class TeacherUpcomingSessions extends StatelessWidget {
   }
 
   Widget _buildSessionCard(BuildContext context, LiveSession session) {
-    // Format date and time
     final dateFormat = DateFormat('EEEE, MMMM d, y');
     final timeFormat = DateFormat('h:mm a');
-    
+
     final sessionDate = DateTime.parse('${session.date} ${session.time}');
     final formattedDate = dateFormat.format(sessionDate);
     final formattedTime = timeFormat.format(sessionDate);
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // LIVE badge and course name
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    color: primaryPurple.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text(
+                  child: const Text(
                     'LIVE',
                     style: TextStyle(
-                      color: Theme.of(context).primaryColor,
+                      color: primaryPurple,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -93,7 +94,9 @@ class TeacherUpcomingSessions extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
+
+            // Session title
             Text(
               session.title,
               style: const TextStyle(
@@ -102,54 +105,49 @@ class TeacherUpcomingSessions extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
+
+            // Date
             Row(
               children: [
-                const Icon(
-                  Icons.calendar_today,
-                  size: 16,
-                  color: Colors.grey,
-                ),
+                const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
                 Text(
                   formattedDate,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],
             ),
             const SizedBox(height: 4),
+
+            // Time and duration
             Row(
               children: [
-                const Icon(
-                  Icons.access_time,
-                  size: 16,
-                  color: Colors.grey,
-                ),
+                const Icon(Icons.access_time, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
                 Text(
                   '$formattedTime (${session.duration} min)',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],
             ),
             const SizedBox(height: 16),
+
+            // Action buttons
             Row(
               children: [
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      // Edit session
+                      // TODO: Implement Edit Session functionality
                     },
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 136, 82, 229), // 💜 Custom color
-                        foregroundColor: Colors.white, // 👈 Text color set to white
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      backgroundColor: primaryPurple,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
+                    ),
                     child: const Text('Edit'),
                   ),
                 ),
@@ -166,10 +164,13 @@ class TeacherUpcomingSessions extends StatelessWidget {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 136, 82, 229), // 💜 Custom color
-                        foregroundColor: Colors.white, // 👈 Text color set to white
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      backgroundColor: primaryPurple,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
+                    ),
                     child: const Text('Start'),
                   ),
                 ),
@@ -181,4 +182,3 @@ class TeacherUpcomingSessions extends StatelessWidget {
     );
   }
 }
-

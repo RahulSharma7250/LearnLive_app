@@ -6,7 +6,6 @@ class RoleSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: Container(
@@ -16,9 +15,10 @@ class RoleSelectionScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: isDark
-                ? [colorScheme.primary, colorScheme.primary.withOpacity(0.8)]
-                : [colorScheme.primary, colorScheme.primary.withOpacity(0.7)],
+            colors: [
+              Color(0xFF3A8DFF), // Primary Gradient 1
+              Color(0xFFA259FF), // Primary Gradient 2
+            ],
           ),
         ),
         child: SafeArea(
@@ -29,12 +29,12 @@ class RoleSelectionScreen extends StatelessWidget {
               // Logo and App Name
               Icon(Icons.school, size: 80, color: Colors.white),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'LearnLive',
                 style: TextStyle(
                   fontSize: 34,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: isDark ? Color(0xFFE4E4E7) : Color(0xFF1F2937), // Text - Primary
                 ),
               ),
               const SizedBox(height: 8),
@@ -42,7 +42,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 'Interactive Learning Platform',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.white.withOpacity(0.85),
+                  color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563), // Text - Secondary
                 ),
               ),
 
@@ -52,10 +52,10 @@ class RoleSelectionScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Text(
                   'I am a...',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark ? Color(0xFFE4E4E7) : Color(0xFF1F2937), // Text - Primary
                   ),
                 ),
               ),
@@ -99,7 +99,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 child: Text(
                   '© 2025 LearnLive. All rights reserved.',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
+                    color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563), // Text - Secondary
                     fontSize: 12,
                   ),
                 ),
@@ -119,11 +119,10 @@ class RoleSelectionScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primary = Theme.of(context).colorScheme.primary;
 
     return Card(
       elevation: 6,
-      color: isDark ? Colors.grey[850] : Colors.white,
+      color: isDark ? Color(0xFF161B22) : Color(0xFFF9FAFB), // Card Background
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
@@ -138,13 +137,13 @@ class RoleSelectionScreen extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: primary.withOpacity(0.1),
+                  color: Color(0xFF60A5FA).withOpacity(0.1), // Accent Color 1
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(
                   icon,
                   size: 30,
-                  color: primary,
+                  color: Color(0xFF60A5FA), // Accent Color 1
                 ),
               ),
               const SizedBox(width: 16),
@@ -157,7 +156,7 @@ class RoleSelectionScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color: isDark ? Color(0xFFE4E4E7) : Color(0xFF1F2937), // Text - Primary
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -165,17 +164,17 @@ class RoleSelectionScreen extends StatelessWidget {
                       description,
                       style: TextStyle(
                         fontSize: 14,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563), // Text - Secondary
                       ),
                     ),
                   ],
                 ),
               ),
-              
+
               Icon(
                 Icons.arrow_forward_ios_rounded,
                 size: 16,
-                color: isDark ? Colors.grey[400] : Colors.grey[500],
+                color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563), // Text - Secondary
               ),
             ],
           ),

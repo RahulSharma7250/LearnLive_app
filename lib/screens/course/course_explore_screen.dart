@@ -46,7 +46,7 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
 
       // First check if we're enrolled using the efficient method
       final isEnrolled = courseProvider.isEnrolledInCourse(courseId);
-    
+
       final course = await courseProvider.fetchCourseDetails(authProvider.token, courseId);
       if (course == null) {
         setState(() {
@@ -64,7 +64,7 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
         _materials = materials;
         _isLoading = false;
       });
-    
+
       // Log enrollment status for debugging
       print('Course ${course.title} (ID: ${course.id}) - Enrollment status: $_isEnrolled');
     } catch (e) {
@@ -141,7 +141,7 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF8852E5),
+              backgroundColor: Color(0xFF60A5FA), // Accent Color 1
             ),
             onPressed: () {
               Navigator.of(ctx).pop();
@@ -179,9 +179,9 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
   Color _getMaterialColor(String type) {
     switch (type) {
       case 'note':
-        return Colors.blue;
+        return Color(0xFF60A5FA); // Accent Color 1
       case 'document':
-        return Colors.red;
+        return Color(0xFFC084FC); // Accent Color 2
       case 'image':
         return Colors.green;
       case 'video':
@@ -196,6 +196,7 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     if (_isLoading) {
       return Scaffold(
@@ -225,7 +226,7 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8852E5)),
+                  style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF60A5FA)), // Accent Color 1
                   child: Text('Go Back', style: GoogleFonts.poppins()),
                 ),
               ],
@@ -256,7 +257,7 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
             Container(
               height: 200,
               width: double.infinity,
-              color: Colors.indigo.shade100,
+              color: isDark ? Color(0xFF161B22) : Color(0xFFF9FAFB), // Card Background
               child: Center(
                 child: Icon(Icons.book, size: 80, color: theme.primaryColor),
               ),
@@ -267,7 +268,7 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
                 Expanded(
                   child: Text(
                     _course!.title,
-                    style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? Color(0xFFE4E4E7) : Color(0xFF1F2937)), // Text - Primary
                   ),
                 ),
                 Container(
@@ -285,7 +286,7 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
             ),
             const SizedBox(height: 8),
             Text('by ${_course!.teacherName ?? 'Unknown Teacher'}',
-                style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey)),
+                style: GoogleFonts.poppins(fontSize: 16, color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563))), // Text - Secondary
             const SizedBox(height: 16),
             Row(
               children: [
@@ -296,12 +297,12 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade100,
+                      color: Color(0xFF10B981).withOpacity(0.2), // Success/Green
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.green.shade300),
+                      border: Border.all(color: Color(0xFF10B981)), // Success/Green
                     ),
                     child: Text('Enrolled',
-                        style: GoogleFonts.poppins(color: Colors.green, fontWeight: FontWeight.bold)),
+                        style: GoogleFonts.poppins(color: Color(0xFF10B981), fontWeight: FontWeight.bold)),
                   ),
               ],
             ),
@@ -321,7 +322,7 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8852E5),
+                    backgroundColor: Color(0xFF60A5FA), // Accent Color 1
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -342,17 +343,17 @@ class _CourseExploreScreenState extends State<CourseExploreScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.orange.shade100,
+                      color: Color(0xFFF97316).withOpacity(0.2), // Info/Blue
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.orange.shade300),
+                      border: Border.all(color: Color(0xFFF97316)), // Info/Blue
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.lock, size: 16, color: Colors.orange.shade800),
+                        Icon(Icons.lock, size: 16, color: Color(0xFFF97316)),
                         const SizedBox(width: 4),
                         Text('Premium Content',
                             style: GoogleFonts.poppins(
-                                color: Colors.orange.shade800,
+                                color: Color(0xFFF97316),
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12)),
                       ],

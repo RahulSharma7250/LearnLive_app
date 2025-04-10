@@ -5,6 +5,8 @@ import '../../providers/course_provider.dart';
 import '../../models/course.dart';
 import '../../screens/teacher/course_materials_screen.dart';
 
+const Color primaryPurple = Color(0xFF8852E5);
+
 class TeacherCourses extends StatelessWidget {
   const TeacherCourses({Key? key}) : super(key: key);
 
@@ -80,7 +82,7 @@ class TeacherCourses extends StatelessWidget {
             width: double.infinity,
             color: Colors.indigo.shade100,
             child: const Center(
-              child: Icon(Icons.book, size: 48, color: Color(0xFF8852E5)),
+              child: Icon(Icons.book, size: 48, color: primaryPurple),
             ),
           ),
 
@@ -97,13 +99,13 @@ class TeacherCourses extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withOpacity(0.1),
+                          color: primaryPurple.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: Text(
-                          'Grade ${course.grade}',
+                        child: const Text(
+                          'Grade ',
                           style: TextStyle(
-                            color: Theme.of(context).primaryColor,
+                            color: primaryPurple,
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
                           ),
@@ -168,9 +170,12 @@ class TeacherCourses extends StatelessWidget {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF8852E5),
+                            backgroundColor: primaryPurple,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                           child: const Text('Manage'),
                         ),

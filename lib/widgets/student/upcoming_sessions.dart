@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../../providers/course_provider.dart';
 import '../../models/session.dart';
 
+const Color primaryPurple = Color(0xFF8852E5);
+
 class UpcomingSessions extends StatelessWidget {
   const UpcomingSessions({Key? key}) : super(key: key);
 
@@ -13,7 +15,9 @@ class UpcomingSessions extends StatelessWidget {
     final upcomingSessions = courseProvider.upcomingSessions;
 
     if (courseProvider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(color: primaryPurple),
+      );
     }
 
     if (upcomingSessions.isEmpty) {
@@ -61,18 +65,19 @@ class UpcomingSessions extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Live tag and course
             Row(
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8852E5).withOpacity(0.1),
+                    color: primaryPurple.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Text(
                     'LIVE',
                     style: TextStyle(
-                      color: Color(0xFF8852E5),
+                      color: primaryPurple,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -93,14 +98,19 @@ class UpcomingSessions extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
+
+            // Session title
             Text(
               session.title,
               style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: primaryPurple,
               ),
             ),
             const SizedBox(height: 16),
+
+            // Date and time
             Row(
               children: [
                 const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
@@ -123,6 +133,8 @@ class UpcomingSessions extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
+
+            // Join button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -136,7 +148,7 @@ class UpcomingSessions extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8852E5),
+                  backgroundColor: primaryPurple,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),

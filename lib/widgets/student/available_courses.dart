@@ -4,6 +4,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/course_provider.dart';
 import '../../models/course.dart';
 
+const Color primaryPurple = Color(0xFF8852E5);
+
 class AvailableCourses extends StatelessWidget {
   const AvailableCourses({Key? key}) : super(key: key);
 
@@ -79,7 +81,7 @@ class AvailableCourses extends StatelessWidget {
               child: Icon(
                 Icons.book,
                 size: 48,
-                color: Theme.of(context).primaryColor,
+                color: primaryPurple,
               ),
             ),
           ),
@@ -93,13 +95,13 @@ class AvailableCourses extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    color: primaryPurple.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     'Grade ${course.grade}',
-                    style: TextStyle(
-                      color: Theme.of(context).primaryColor,
+                    style: const TextStyle(
+                      color: primaryPurple,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -154,7 +156,7 @@ class AvailableCourses extends StatelessWidget {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF8852E5),
+                          backgroundColor: primaryPurple,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 8),
                         ),
@@ -175,7 +177,7 @@ class AvailableCourses extends StatelessWidget {
                                 );
                               },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF8852E5),
+                          backgroundColor: primaryPurple,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 8),
                         ),

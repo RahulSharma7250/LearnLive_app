@@ -39,21 +39,29 @@ class _AuthFormState extends State<AuthForm> {
   }
 
   InputDecoration _inputDecoration(String label, IconData icon) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return InputDecoration(
       labelText: label,
       prefixIcon: Icon(icon),
       border: const OutlineInputBorder(),
-      enabledBorder: const OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.grey),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: isDark ? Color(0xFF2A2E35) : Color(0xFFE5E7EB)), // Border/Line
       ),
-      focusedBorder: const OutlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFF8852E5), width: 2),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Color(0xFF60A5FA), width: 2), // Accent Color 1
       ),
+      labelStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
+      hintStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Form(
       key: _formKey,
       child: Column(
@@ -112,6 +120,7 @@ class _AuthFormState extends State<AuthForm> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color: Color(0xFF60A5FA), // Accent Color 1
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -151,7 +160,7 @@ class _AuthFormState extends State<AuthForm> {
             child: ElevatedButton(
               onPressed: widget.isLoading ? null : _trySubmit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8852E5),
+                backgroundColor: Color(0xFF60A5FA), // Accent Color 1
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),

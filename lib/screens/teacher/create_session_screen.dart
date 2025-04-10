@@ -178,6 +178,8 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final dateFormat = DateFormat('EEEE, MMMM d, y');
 
     return Scaffold(
@@ -199,13 +201,13 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                         margin: const EdgeInsets.only(bottom: 16),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade100,
+                          color: Color(0xFFEF4444).withOpacity(0.2), // Error/Red
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.red.shade300),
+                          border: Border.all(color: Color(0xFFEF4444)), // Error/Red
                         ),
                         child: Text(
                           _error!,
-                          style: TextStyle(color: Colors.red.shade800),
+                          style: TextStyle(color: Color(0xFFEF4444)), // Error/Red
                         ),
                       ),
                     if (_teacherCourses.isEmpty)
@@ -214,9 +216,9 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                         margin: const EdgeInsets.only(bottom: 16),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.orange.shade100,
+                          color: Color(0xFFF97316).withOpacity(0.2), // Info/Blue
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.orange.shade300),
+                          border: Border.all(color: Color(0xFFF97316)), // Info/Blue
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,20 +226,24 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                             Text(
                               'You don\'t have any courses yet',
                               style: TextStyle(
-                                color: Colors.orange.shade800,
+                                color: Color(0xFFF97316), // Info/Blue
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'Please create a course before scheduling a live session',
-                              style: TextStyle(color: Colors.orange.shade800),
+                              style: TextStyle(color: Color(0xFFF97316)), // Info/Blue
                             ),
                             const SizedBox(height: 12),
                             ElevatedButton(
                               onPressed: () {
                                 Navigator.of(context).pushReplacementNamed('/courses/create');
                               },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF60A5FA), // Accent Color 1
+                                foregroundColor: Colors.white,
+                              ),
                               child: const Text('Create Course'),
                             ),
                           ],
@@ -252,13 +258,15 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: Color(0xFF60A5FA), // Accent Color 1
                             ),
                           ),
                           const SizedBox(height: 16),
                           DropdownButtonFormField<Course>(
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Course',
                               border: OutlineInputBorder(),
+                              labelStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
                             ),
                             value: _selectedCourse,
                             items: _teacherCourses.map((course) {
@@ -279,10 +287,12 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                           const SizedBox(height: 16),
                           TextFormField(
                             controller: _titleController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Session Title',
                               hintText: 'e.g., Introduction to Fractions',
                               border: OutlineInputBorder(),
+                              labelStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
+                              hintStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
                             ),
                             validator: (value) =>
                                 value == null || value.isEmpty ? 'Please enter a session title' : null,
@@ -290,10 +300,12 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                           const SizedBox(height: 16),
                           TextFormField(
                             controller: _descriptionController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Session Description',
                               hintText: 'Describe what will be covered in this session',
                               border: OutlineInputBorder(),
+                              labelStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
+                              hintStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
                             ),
                             maxLines: 3,
                             validator: (value) =>
@@ -356,10 +368,12 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                           const SizedBox(height: 16),
                           TextFormField(
                             controller: _durationController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Duration (minutes)',
                               hintText: '45',
                               border: OutlineInputBorder(),
+                              labelStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
+                              hintStyle: TextStyle(color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563)), // Text - Secondary
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
@@ -374,7 +388,7 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _submitForm,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF8852E5), // 💜 Primary
+                                backgroundColor: Color(0xFF60A5FA), // Accent Color 1
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(

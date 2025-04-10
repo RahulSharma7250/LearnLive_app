@@ -66,7 +66,7 @@ class _TeacherAuthScreenState extends State<TeacherAuthScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Account created successfully! Please login.'),
-              backgroundColor: Colors.green,
+              backgroundColor: Color(0xFF10B981), // Success/Green
             ),
           );
         }
@@ -87,21 +87,33 @@ class _TeacherAuthScreenState extends State<TeacherAuthScreen> {
   }
 
   InputDecoration inputDecoration(String label, IconData icon) {
+    final theme = Theme.of(context);
     return InputDecoration(
       labelText: label,
       labelStyle: const TextStyle(fontFamily: 'Poppins'),
       prefixIcon: Icon(icon),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF8852E5)),
+        borderSide: BorderSide(
+          color: theme.brightness == Brightness.dark
+              ? Color(0xFF2A2E35)
+              : Color(0xFFE5E7EB), // Border/Line
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF8852E5), width: 2),
+        borderSide: const BorderSide(
+          color: Color(0xFF60A5FA), // Accent Color 1
+          width: 2,
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.grey),
+        borderSide: BorderSide(
+          color: theme.brightness == Brightness.dark
+              ? Color(0xFF2A2E35)
+              : Color(0xFFE5E7EB), // Border/Line
+        ),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
@@ -109,6 +121,7 @@ class _TeacherAuthScreenState extends State<TeacherAuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -118,8 +131,8 @@ class _TeacherAuthScreenState extends State<TeacherAuthScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).primaryColor,
-              Theme.of(context).primaryColor.withOpacity(0.7),
+              Color(0xFF3A8DFF), // Primary Gradient 1
+              Color(0xFFA259FF), // Primary Gradient 2
             ],
           ),
         ),
@@ -132,26 +145,33 @@ class _TeacherAuthScreenState extends State<TeacherAuthScreen> {
                 const SizedBox(height: 40),
                 const Icon(Icons.school, size: 64, color: Colors.white),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'LearnLive',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: theme.brightness == Brightness.dark
+                        ? Color(0xFFE4E4E7)
+                        : Color(0xFF1F2937), // Text - Primary
                     fontFamily: 'Poppins',
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Teacher Portal',
                   style: TextStyle(
                     fontSize: 18,
-                    color: Colors.white,
+                    color: theme.brightness == Brightness.dark
+                        ? Color(0xFF9CA3AF)
+                        : Color(0xFF4B5563), // Text - Secondary
                     fontFamily: 'Poppins',
                   ),
                 ),
                 const SizedBox(height: 48),
                 Card(
+                  color: theme.brightness == Brightness.dark
+                      ? Color(0xFF161B22)
+                      : Color(0xFFF9FAFB), // Card Background
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -163,9 +183,12 @@ class _TeacherAuthScreenState extends State<TeacherAuthScreen> {
                       children: [
                         Text(
                           _isLogin ? 'Teacher Login' : 'Teacher Sign Up',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
+                            color: theme.brightness == Brightness.dark
+                                ? Color(0xFFE4E4E7)
+                                : Color(0xFF1F2937), // Text - Primary
                             fontFamily: 'Poppins',
                           ),
                         ),
@@ -175,14 +198,22 @@ class _TeacherAuthScreenState extends State<TeacherAuthScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.red.shade100,
+                              color: theme.brightness == Brightness.dark
+                                  ? Color(0xFFEF4444).withOpacity(0.2)
+                                  : Color(0xFFDC2626).withOpacity(0.2), // Error/Red
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.red.shade300),
+                              border: Border.all(
+                                color: theme.brightness == Brightness.dark
+                                    ? Color(0xFFEF4444)
+                                    : Color(0xFFDC2626), // Error/Red
+                              ),
                             ),
                             child: Text(
                               _error!,
                               style: TextStyle(
-                                color: Colors.red.shade800,
+                                color: theme.brightness == Brightness.dark
+                                    ? Color(0xFFEF4444)
+                                    : Color(0xFFDC2626), // Error/Red
                                 fontFamily: 'Poppins',
                               ),
                             ),
@@ -233,7 +264,7 @@ class _TeacherAuthScreenState extends State<TeacherAuthScreen> {
                                 child: ElevatedButton(
                                   onPressed: _isLoading ? null : _submitForm,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF8852E5),
+                                    backgroundColor: Color(0xFF60A5FA), // Accent Color 1
                                     foregroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(vertical: 12),
                                   ),
@@ -264,7 +295,12 @@ class _TeacherAuthScreenState extends State<TeacherAuthScreen> {
                           children: [
                             Text(
                               _isLogin ? 'Don\'t have an account?' : 'Already have an account?',
-                              style: const TextStyle(fontFamily: 'Poppins'),
+                              style: TextStyle(
+                                color: theme.brightness == Brightness.dark
+                                    ? Color(0xFF9CA3AF)
+                                    : Color(0xFF4B5563), // Text - Secondary
+                                fontFamily: 'Poppins',
+                              ),
                             ),
                             TextButton(
                               onPressed: () {
@@ -275,7 +311,10 @@ class _TeacherAuthScreenState extends State<TeacherAuthScreen> {
                               },
                               child: Text(
                                 _isLogin ? 'Sign Up' : 'Login',
-                                style: const TextStyle(fontFamily: 'Poppins'),
+                                style: TextStyle(
+                                  color: Color(0xFF60A5FA), // Accent Color 1
+                                  fontFamily: 'Poppins',
+                                ),
                               ),
                             ),
                           ],
@@ -290,10 +329,12 @@ class _TeacherAuthScreenState extends State<TeacherAuthScreen> {
                     Navigator.of(context).pop();
                   },
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  label: const Text(
+                  label: Text(
                     'Back to Role Selection',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: theme.brightness == Brightness.dark
+                          ? Color(0xFFE4E4E7)
+                          : Color(0xFF1F2937), // Text - Primary
                       fontFamily: 'Poppins',
                     ),
                   ),

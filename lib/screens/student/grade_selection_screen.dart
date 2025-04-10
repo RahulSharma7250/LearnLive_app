@@ -17,9 +17,10 @@ class GradeSelectionScreen extends StatelessWidget {
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: isDark
-                ? [colorScheme.primary, colorScheme.primary.withOpacity(0.8)]
-                : [colorScheme.primary, colorScheme.primary.withOpacity(0.85)],
+            colors: [
+              Color(0xFF3A8DFF), // Primary Gradient 1
+              Color(0xFFA259FF), // Primary Gradient 2
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -34,11 +35,11 @@ class GradeSelectionScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.grey[900] : Colors.white,
+                    color: isDark ? Color(0xFF161B22) : Color(0xFFF9FAFB), // Card Background
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
                     boxShadow: [
                       BoxShadow(
-                        color: isDark ? Colors.black12 : Colors.black26,
+                        color: isDark ? Color(0xFF2A2E35) : Color(0xFFE5E7EB), // Border/Line
                         offset: const Offset(0, -2),
                         blurRadius: 12,
                       )
@@ -52,7 +53,7 @@ class GradeSelectionScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
+                          color: isDark ? Color(0xFFE4E4E7) : Color(0xFF1F2937), // Text - Primary
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -76,10 +77,10 @@ class GradeSelectionScreen extends StatelessWidget {
                           authProvider.logout();
                           Navigator.of(context).pushReplacementNamed('/');
                         },
-                        icon: const Icon(Icons.logout, color: Colors.redAccent),
+                        icon: const Icon(Icons.logout, color: Color(0xFFEF4444)), // Error/Red
                         label: const Text(
                           'Logout',
-                          style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600),
+                          style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.w600), // Error/Red
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -136,14 +137,14 @@ class GradeSelectionScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           gradient: LinearGradient(
             colors: isDark
-                ? [Colors.grey[850]!, Colors.grey[800]!]
-                : [Colors.white, Colors.grey.shade100],
+                ? [Color(0xFF161B22), Color(0xFF161B22)] // Card Background
+                : [Color(0xFFF9FAFB), Color(0xFFF9FAFB)], // Card Background
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           boxShadow: [
             BoxShadow(
-              color: isDark ? Colors.black45 : Colors.black12,
+              color: isDark ? Color(0xFF2A2E35) : Color(0xFFE5E7EB), // Border/Line
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -176,7 +177,7 @@ class GradeSelectionScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
+                color: isDark ? Color(0xFFE4E4E7) : Color(0xFF1F2937), // Text - Primary
               ),
             ),
             const SizedBox(height: 4),
@@ -184,7 +185,7 @@ class GradeSelectionScreen extends StatelessWidget {
               'Tap to select',
               style: TextStyle(
                 fontSize: 13,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                color: isDark ? Color(0xFF9CA3AF) : Color(0xFF4B5563), // Text - Secondary
               ),
             ),
           ],
@@ -212,7 +213,7 @@ class GradeSelectionScreen extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: Color(0xFFEF4444), // Error/Red
           ),
         );
       }

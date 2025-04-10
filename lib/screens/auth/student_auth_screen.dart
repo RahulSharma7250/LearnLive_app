@@ -55,7 +55,9 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
       if (success) {
         if (_isLogin) {
           if (!mounted) return;
-          Navigator.of(context).pushReplacementNamed('/student/grade-selection');
+          Navigator.of(
+            context,
+          ).pushReplacementNamed('/student/grade-selection');
         } else {
           if (!mounted) return;
           setState(() {
@@ -67,7 +69,7 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Account created successfully! Please login.'),
-              backgroundColor: Colors.green,
+              backgroundColor: Color(0xFF10B981), // Success/Green
             ),
           );
         }
@@ -88,16 +90,24 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
   }
 
   InputDecoration _buildInputDecoration(String label, IconData icon) {
+    final theme = Theme.of(context);
     return InputDecoration(
       labelText: label,
       prefixIcon: Icon(icon),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.grey.shade400),
+        borderSide: BorderSide(
+          color: theme.brightness == Brightness.dark
+              ? Color(0xFF2A2E35)
+              : Color(0xFFE5E7EB), // Border/Line
+        ),
         borderRadius: BorderRadius.circular(12),
       ),
       focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+        borderSide: BorderSide(
+          color: Color(0xFF60A5FA), // Accent Color 1
+          width: 2,
+        ),
         borderRadius: BorderRadius.circular(12),
       ),
     );
@@ -105,6 +115,7 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -114,8 +125,8 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).primaryColor,
-              Theme.of(context).primaryColor.withOpacity(0.7),
+              Color(0xFF3A8DFF), // Primary Gradient 1
+              Color(0xFFA259FF), // Primary Gradient 2
             ],
           ),
         ),
@@ -128,21 +139,31 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                 const SizedBox(height: 40),
                 const Icon(Icons.school, size: 64, color: Colors.white),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'LearnLive',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: theme.brightness == Brightness.dark
+                        ? Color(0xFFE4E4E7)
+                        : Color(0xFF1F2937), // Text - Primary
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Student Portal',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: theme.brightness == Brightness.dark
+                        ? Color(0xFF9CA3AF)
+                        : Color(0xFF4B5563), // Text - Secondary
+                  ),
                 ),
                 const SizedBox(height: 48),
                 Card(
+                  color: theme.brightness == Brightness.dark
+                      ? Color(0xFF161B22)
+                      : Color(0xFFF9FAFB), // Card Background
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -154,9 +175,12 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                       children: [
                         Text(
                           _isLogin ? 'Student Login' : 'Student Sign Up',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
+                            color: theme.brightness == Brightness.dark
+                                ? Color(0xFFE4E4E7)
+                                : Color(0xFF1F2937), // Text - Primary
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -165,13 +189,23 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.red.shade100,
+                              color: theme.brightness == Brightness.dark
+                                  ? Color(0xFFEF4444).withOpacity(0.2)
+                                  : Color(0xFFDC2626).withOpacity(0.2), // Error/Red
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.red.shade300),
+                              border: Border.all(
+                                color: theme.brightness == Brightness.dark
+                                    ? Color(0xFFEF4444)
+                                    : Color(0xFFDC2626), // Error/Red
+                              ),
                             ),
                             child: Text(
                               _error!,
-                              style: TextStyle(color: Colors.red.shade800),
+                              style: TextStyle(
+                                color: theme.brightness == Brightness.dark
+                                    ? Color(0xFFEF4444)
+                                    : Color(0xFFDC2626), // Error/Red
+                              ),
                             ),
                           ),
                         if (_error != null) const SizedBox(height: 16),
@@ -182,9 +216,14 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                               if (!_isLogin)
                                 TextFormField(
                                   controller: _nameController,
-                                  decoration: _buildInputDecoration('Full Name', Icons.person),
+                                  decoration: _buildInputDecoration(
+                                    'Full Name',
+                                    Icons.person,
+                                  ),
                                   validator: (value) {
-                                    if (value == null || value.isEmpty || value.length < 3) {
+                                    if (value == null ||
+                                        value.isEmpty ||
+                                        value.length < 3) {
                                       return 'Please enter a valid name (at least 3 characters)';
                                     }
                                     return null;
@@ -193,10 +232,15 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                               if (!_isLogin) const SizedBox(height: 16),
                               TextFormField(
                                 controller: _emailController,
-                                decoration: _buildInputDecoration('Email Address', Icons.email),
+                                decoration: _buildInputDecoration(
+                                  'Email Address',
+                                  Icons.email,
+                                ),
                                 keyboardType: TextInputType.emailAddress,
                                 validator: (value) {
-                                  if (value == null || value.isEmpty || !value.contains('@')) {
+                                  if (value == null ||
+                                      value.isEmpty ||
+                                      !value.contains('@')) {
                                     return 'Please enter a valid email address';
                                   }
                                   return null;
@@ -205,10 +249,15 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                               const SizedBox(height: 16),
                               TextFormField(
                                 controller: _passwordController,
-                                decoration: _buildInputDecoration('Password', Icons.lock),
+                                decoration: _buildInputDecoration(
+                                  'Password',
+                                  Icons.lock,
+                                ),
                                 obscureText: true,
                                 validator: (value) {
-                                  if (value == null || value.isEmpty || value.length < 6) {
+                                  if (value == null ||
+                                      value.isEmpty ||
+                                      value.length < 6) {
                                     return 'Password must be at least 6 characters long';
                                   }
                                   return null;
@@ -217,32 +266,34 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                               const SizedBox(height: 24),
                               SizedBox(
                                 width: double.infinity,
-                               child: ElevatedButton(
-  onPressed: _isLoading ? null : _submitForm,
-  style: ElevatedButton.styleFrom(
-    backgroundColor: const Color.fromARGB(255, 136, 82, 229), // Lilac color
-    padding: const EdgeInsets.symmetric(vertical: 12),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
-    ),
-  ),
-  child: _isLoading
-      ? const SizedBox(
-          height: 20,
-          width: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: Colors.white,
-          ),
-        )
-      : Text(
-          _isLogin ? 'Login' : 'Sign Up',
-          style: const TextStyle(
-            fontSize: 16,
-            color: Colors.white,
-          ),
-        ),
-),
+                                child: ElevatedButton(
+                                  onPressed: _isLoading ? null : _submitForm,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFF60A5FA), // Accent Color 1
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: _isLoading
+                                      ? const SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : Text(
+                                          _isLogin ? 'Login' : 'Sign Up',
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                ),
                               ),
                             ],
                           ),
@@ -251,9 +302,16 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(_isLogin
-                                ? 'Don\'t have an account?'
-                                : 'Already have an account?'),
+                            Text(
+                              _isLogin
+                                  ? 'Don\'t have an account?'
+                                  : 'Already have an account?',
+                              style: TextStyle(
+                                color: theme.brightness == Brightness.dark
+                                    ? Color(0xFF9CA3AF)
+                                    : Color(0xFF4B5563), // Text - Secondary
+                              ),
+                            ),
                             TextButton(
                               onPressed: () {
                                 setState(() {
@@ -261,7 +319,12 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                                   _error = null;
                                 });
                               },
-                              child: Text(_isLogin ? 'Sign Up' : 'Login'),
+                              child: Text(
+                                _isLogin ? 'Sign Up' : 'Login',
+                                style: TextStyle(
+                                  color: Color(0xFF60A5FA), // Accent Color 1
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -275,9 +338,13 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                     Navigator.of(context).pop();
                   },
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  label: const Text(
+                  label: Text(
                     'Back to Role Selection',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(
+                      color: theme.brightness == Brightness.dark
+                          ? Color(0xFFE4E4E7)
+                          : Color(0xFF1F2937), // Text - Primary
+                    ),
                   ),
                 ),
               ],
